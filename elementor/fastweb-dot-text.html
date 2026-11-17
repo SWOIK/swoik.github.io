@@ -1,0 +1,56 @@
+<!-- Elementor: วางทั้งไฟล์นี้ใน Widget "HTML" (ก่อน Footer) — ไม่ต้องใช้ปลั๊กอิน/ไลบรารี -->
+<style>
+  .fw-dots{aspect-ratio:82/14;width:100%;max-width:960px;margin:0 auto;touch-action:pan-y;
+    color:#fff;/* สีจุด: เปลี่ยนตรงนี้ เช่น #111 หรือ var(--e-global-color-primary) */}
+  .fw-dots canvas{display:block;width:100%;height:100%}
+</style>
+<div class="fw-dots" role="img" aria-label="FASTWEB"><canvas aria-hidden="true" data-text="FASTWEB"></canvas></div>
+<script>
+(function(){
+  var G={F:"11111100001111010000100001000010000",
+  S:"01111100001000001110000010000111110",T:"11111001000010000100001000010000100",
+  W:"10001100011000110101101011101110001",E:"11111100001111010000100001000011111",
+  B:"11110100011000111110100011000111110"};
+  G.A="01110"+"10001"+"10001"+"11111"+"10001"+"10001"+"10001";
+  var SC=2,GAP=2;
+  function init(box){
+    var cv=box.querySelector("canvas");if(!cv||cv._d)return;cv._d=1;
+    var ctx=cv.getContext("2d"),cells=[],col=0,i,k;
+    for(var ch of cv.dataset.text){var g=G[ch];
+      for(i=0;i<35;i++)if(g[i]==="1")for(var dy=0;dy<SC;dy++)for(var dx=0;dx<SC;dx++)
+        cells.push(col+(i%5)*SC+dx,((i/5)|0)*SC+dy);
+      col+=5*SC+GAP}
+    var COLS=col-GAP,N=cells.length/2,F=Float32Array,
+    hx=new F(N),hy=new F(N),x=new F(N),y=new F(N),vx=new F(N),vy=new F(N),
+    pitch=1,dot=1,W=0,H=0,raf=0,lx=-1,ly=-1;
+    function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle=getComputedStyle(box).color;ctx.beginPath();
+      for(var i=0;i<N;i++)ctx.rect(x[i],y[i],dot,dot);ctx.fill()}
+    function layout(){var r=cv.getBoundingClientRect();if(!r.width)return;
+      var d=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;
+      ctx.setTransform(d,0,0,d,0,0);pitch=W/COLS;dot=pitch*.72;
+      for(var i=0;i<N;i++){hx[i]=x[i]=cells[2*i]*pitch+(pitch-dot)/2;hy[i]=y[i]=cells[2*i+1]*pitch+(pitch-dot)/2;vx[i]=vy[i]=0}
+      draw()}
+    function tick(){var mv=false;
+      for(var i=0;i<N;i++){vx[i]=(vx[i]+(hx[i]-x[i])*.012)*.95;vy[i]=(vy[i]+(hy[i]-y[i])*.012)*.95;
+        x[i]+=vx[i];y[i]+=vy[i];
+        if(Math.abs(vx[i])+Math.abs(vy[i])>.02||Math.abs(hx[i]-x[i])+Math.abs(hy[i]-y[i])>.3)mv=true}
+      draw();raf=mv?requestAnimationFrame(tick):0;
+      if(!mv)for(i=0;i<N;i++){x[i]=hx[i];y[i]=hy[i]}}
+    function burst(px,py){var R=Math.max(pitch*5,18),R2=R*R,ax=lx<0?px:lx,ay=lx<0?py:ly,
+      sx=px-ax,sy=py-ay,l2=sx*sx+sy*sy||1;
+      for(var i=0;i<N;i++){var t=((x[i]-ax)*sx+(y[i]-ay)*sy)/l2;t=t<0?0:t>1?1:t;
+        var dx=x[i]-(ax+sx*t),dy=y[i]-(ay+sy*t),d2=dx*dx+dy*dy;
+        if(d2<R2){var d=Math.sqrt(d2)||1,f=(1-d/R)*pitch*(2+Math.random()*5);
+          vx[i]+=dx/d*f+(Math.random()-.5)*pitch*2;vy[i]+=dy/d*f+(Math.random()-.5)*pitch*2-pitch*.5}}
+      lx=px;ly=py;if(!raf)raf=requestAnimationFrame(tick)}
+    layout();
+    if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+    function pos(e){var r=cv.getBoundingClientRect();burst(e.clientX-r.left,e.clientY-r.top)}
+    box.addEventListener("pointermove",pos,{passive:true});
+    box.addEventListener("pointerdown",function(e){lx=-1;pos(e)},{passive:true});
+    box.addEventListener("pointerleave",function(){lx=-1},{passive:true});
+    new ResizeObserver(layout).observe(box);
+  }
+  document.querySelectorAll(".fw-dots").forEach(init);
+})();
+</script>

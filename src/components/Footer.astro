@@ -12,6 +12,9 @@ const { noMarginTop = false } = Astro.props;
 ---
 
 <footer class={`${noMarginTop ? "" : "mt-auto"}`}>
+  <div class="dot-brand" role="img" aria-label="FASTWEB">
+    <canvas aria-hidden="true" data-dot-text="FASTWEB"></canvas>
+  </div>
   <Hr noPadding />
   <div class="footer-wrapper">
     <Socials centered />
@@ -43,3 +46,149 @@ const { noMarginTop = false } = Astro.props;
     @apply hidden sm:inline;
   }
 </style>
+
+<style>
+  .dot-brand {
+    /* reserve space up-front: no layout shift (CLS = 0). 82 cols x 14 rows */
+    aspect-ratio: 82 / 14;
+    @apply mx-auto mb-6 w-full max-w-xl;
+    touch-action: pan-y; /* vertical scroll still works on touch */
+  }
+  .dot-brand canvas {
+    @apply block h-full w-full;
+  }
+</style>
+
+<script>
+  // Dot-matrix "FASTWEB" that shatters under the pointer, then springs back.
+  // Vanilla, no deps, ~1.5 KB min+gzip. Loop runs only while particles move.
+  const G: Record<string, string> = {
+    F: "11111100001111010000100001000010000",
+    A: "01110"+"10001"+"10001"+"11111"+"10001"+"10001"+"10001",
+    S: "01111100001000001110000010000111110",
+    T: "11111001000010000100001000010000100",
+    W: "10001100011000110101101011101110001",
+    E: "11111100001111010000100001000011111",
+    B: "11110100011000111110100011000111110",
+  };
+  const SCALE = 2; // each glyph cell = 2x2 dots (chunky strokes like the design)
+  const GAP = 2; // empty dot columns between letters
+
+  function init() {
+    const cv = document.querySelector<HTMLCanvasElement>("canvas[data-dot-text]");
+    if (!cv || (cv as any)._d) return;
+    (cv as any)._d = 1;
+    const ctx = cv.getContext("2d")!;
+    const text = cv.dataset.dotText!;
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // 1. Build dot grid
+    const cells: number[] = []; // col,row pairs
+    let col = 0;
+    for (const ch of text) {
+      const g = G[ch];
+      for (let i = 0; i < 35; i++)
+        if (g[i] === "1")
+          for (let dy = 0; dy < SCALE; dy++)
+            for (let dx = 0; dx < SCALE; dx++)
+              cells.push(col + (i % 5) * SCALE + dx, ((i / 5) | 0) * SCALE + dy);
+      col += 5 * SCALE + GAP;
+    }
+    const COLS = col - GAP,
+      ROWS = 7 * SCALE,
+      N = cells.length / 2;
+    const hx = new Float32Array(N), hy = new Float32Array(N);
+    const x = new Float32Array(N), y = new Float32Array(N);
+    const vx = new Float32Array(N), vy = new Float32Array(N);
+
+    let pitch = 1, dot = 1, color = "#fff", raf = 0, W = 0, H = 0;
+    let lx = -1, ly = -1; // last pointer pos (canvas px)
+
+    const readColor = () => {
+      const c = getComputedStyle(document.documentElement)
+        .getPropertyValue("--color-text-base")
+        .trim();
+      color = c ? `rgb(${c})` : "#888";
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) ctx.rect(x[i], y[i], dot, dot);
+      ctx.fill();
+    };
+
+    const layout = () => {
+      const r = cv.getBoundingClientRect();
+      if (!r.width) return;
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      W = r.width; H = r.height;
+      cv.width = W * dpr; cv.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      pitch = W / COLS; dot = pitch * 0.72;
+      for (let i = 0; i < N; i++) {
+        hx[i] = x[i] = cells[2 * i] * pitch + (pitch - dot) / 2;
+        hy[i] = y[i] = cells[2 * i + 1] * pitch + (pitch - dot) / 2;
+        vx[i] = vy[i] = 0;
+      }
+      readColor();
+      draw();
+    };
+
+    const tick = () => {
+      let moving = false;
+      for (let i = 0; i < N; i++) {
+        vx[i] = (vx[i] + (hx[i] - x[i]) * 0.012) * 0.95;
+        vy[i] = (vy[i] + (hy[i] - y[i]) * 0.012) * 0.95;
+        x[i] += vx[i]; y[i] += vy[i];
+        if (Math.abs(vx[i]) + Math.abs(vy[i]) > 0.02 ||
+            Math.abs(hx[i] - x[i]) + Math.abs(hy[i] - y[i]) > 0.3) moving = true;
+      }
+      draw();
+      raf = moving ? requestAnimationFrame(tick) : 0;
+      if (!moving) for (let i = 0; i < N; i++) { x[i] = hx[i]; y[i] = hy[i]; }
+    };
+
+    // 2. Pointer: scatter dots near the segment last->current pointer position
+    const burst = (px: number, py: number) => {
+      const R = Math.max(pitch * 5, 18), R2 = R * R;
+      const ax = lx < 0 ? px : lx, ay = lx < 0 ? py : ly;
+      const sx = px - ax, sy = py - ay, len2 = sx * sx + sy * sy || 1;
+      for (let i = 0; i < N; i++) {
+        // distance from dot to the swept segment (no gaps on fast moves)
+        let t = ((x[i] - ax) * sx + (y[i] - ay) * sy) / len2;
+        t = t < 0 ? 0 : t > 1 ? 1 : t;
+        const dx = x[i] - (ax + sx * t), dy = y[i] - (ay + sy * t);
+        const d2 = dx * dx + dy * dy;
+        if (d2 < R2) {
+          const d = Math.sqrt(d2) || 1, f = (1 - d / R) * pitch * (2 + Math.random() * 5);
+          vx[i] += (dx / d) * f + (Math.random() - 0.5) * pitch * 2;
+          vy[i] += (dy / d) * f + (Math.random() - 0.5) * pitch * 2 - pitch * 0.5;
+        }
+      }
+      lx = px; ly = py;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    layout();
+    if (still) return; // reduced motion: static dots only
+
+    const host = cv.parentElement!;
+    const pos = (e: PointerEvent) => {
+      const r = cv.getBoundingClientRect();
+      burst(e.clientX - r.left, e.clientY - r.top);
+    };
+    host.addEventListener("pointermove", pos, { passive: true });
+    host.addEventListener("pointerdown", (e) => { lx = -1; pos(e); }, { passive: true });
+    host.addEventListener("pointerleave", () => { lx = -1; }, { passive: true });
+
+    new ResizeObserver(layout).observe(host);
+    // Re-colour on light/dark toggle
+    new MutationObserver(() => { readColor(); draw(); })
+      .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  }
+
+  // Run once now, and again after Astro view-transition navigations
+  document.addEventListener("astro:page-load", init);
+</script>

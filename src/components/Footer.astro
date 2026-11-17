@@ -49,8 +49,8 @@ const { noMarginTop = false } = Astro.props;
 
 <style>
   .dot-brand {
-    /* reserve space up-front: no layout shift (CLS = 0). 82 cols x 14 rows */
-    aspect-ratio: 82 / 14;
+    /* reserve space up-front: no layout shift (CLS = 0). 205 cols x 35 rows */
+    aspect-ratio: 205 / 35;
     @apply mx-auto mb-6 w-full max-w-xl;
     touch-action: pan-y; /* vertical scroll still works on touch */
   }
@@ -67,12 +67,12 @@ const { noMarginTop = false } = Astro.props;
     A: "01110"+"10001"+"10001"+"11111"+"10001"+"10001"+"10001",
     S: "01111100001000001110000010000111110",
     T: "11111001000010000100001000010000100",
-    W: "10001100011000110101101011101110001",
+    W: "10001"+"10001"+"10001"+"10101"+"10101"+"10101"+"01010",
     E: "11111100001111010000100001000011111",
     B: "11110100011000111110100011000111110",
   };
-  const SCALE = 2; // each glyph cell = 2x2 dots (chunky strokes like the design)
-  const GAP = 2; // empty dot columns between letters
+  const SCALE = 5; // each glyph cell = 5x5 dots (measured from the reference image: 205x35 dot grid)
+  const GAP = 5; // one glyph cell of space between letters
 
   function init() {
     const cv = document.querySelector<HTMLCanvasElement>("canvas[data-dot-text]");
@@ -126,7 +126,7 @@ const { noMarginTop = false } = Astro.props;
       W = r.width; H = r.height;
       cv.width = W * dpr; cv.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      pitch = W / COLS; dot = pitch * 0.72;
+      pitch = W / COLS; dot = pitch * 0.74;
       for (let i = 0; i < N; i++) {
         hx[i] = x[i] = cells[2 * i] * pitch + (pitch - dot) / 2;
         hy[i] = y[i] = cells[2 * i + 1] * pitch + (pitch - dot) / 2;
@@ -152,7 +152,7 @@ const { noMarginTop = false } = Astro.props;
 
     // 2. Pointer: scatter dots near the segment last->current pointer position
     const burst = (px: number, py: number) => {
-      const R = Math.max(pitch * 5, 18), R2 = R * R;
+      const R = Math.max(pitch * 12, 22), R2 = R * R;
       const ax = lx < 0 ? px : lx, ay = lx < 0 ? py : ly;
       const sx = px - ax, sy = py - ay, len2 = sx * sx + sy * sy || 1;
       for (let i = 0; i < N; i++) {
@@ -162,9 +162,9 @@ const { noMarginTop = false } = Astro.props;
         const dx = x[i] - (ax + sx * t), dy = y[i] - (ay + sy * t);
         const d2 = dx * dx + dy * dy;
         if (d2 < R2) {
-          const d = Math.sqrt(d2) || 1, f = (1 - d / R) * pitch * (2 + Math.random() * 5);
-          vx[i] += (dx / d) * f + (Math.random() - 0.5) * pitch * 2;
-          vy[i] += (dy / d) * f + (Math.random() - 0.5) * pitch * 2 - pitch * 0.5;
+          const d = Math.sqrt(d2) || 1, f = (1 - d / R) * pitch * 2.5 * (2 + Math.random() * 5);
+          vx[i] += (dx / d) * f + (Math.random() - 0.5) * pitch * 5;
+          vy[i] += (dy / d) * f + (Math.random() - 0.5) * pitch * 5 - pitch * 1.2;
         }
       }
       lx = px; ly = py;

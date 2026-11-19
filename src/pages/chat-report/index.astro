@@ -3,114 +3,138 @@
 // ชื่อ "ป้าเม้าท์" เป็นชื่อชั่วคราว ต้องตรวจเครื่องหมายการค้า/โดเมนก่อนใช้จริง
 // ราคาและข้อความนโยบายเป็นสมมติฐานจาก docs/chat-report-product/*
 // หน้านี้ไม่ประมวลผลหรือเก็บข้อมูลผู้ใช้ใด ๆ (ดูสคริปต์ท้ายไฟล์)
+// ฟอนต์ (Prompt, IBM Plex Sans Thai) ฝังไว้ใน public/fonts/chat-report ไม่เรียกบริการภายนอก
 const title = "ป้าเม้าท์ — ส่งแชทมา แล้วฟังว่าเกิดอะไรขึ้นจริง ๆ (ต้นแบบ)";
 const description =
   "ต้นแบบแนวคิด: อัปโหลดแชท LINE / WhatsApp แล้วให้ AI อ่านทั้งแชทและเล่าให้ฟังตรง ๆ ว่าใครใส่ใจใคร บทบาทของคุณคืออะไร";
+
 const chat = [
-  { who: "ฟ้า", me: true, text: "เสาร์นี้ว่างป่าว" },
-  { who: "บีม", me: false, text: "เดี๋ยวดูก่อนนะ" },
-  { who: "ฟ้า", me: true, text: "จองร้านไว้แล้วนะ สองทุ่ม" },
-  { who: "บีม", me: false, text: "โทษที เพิ่งเห็น งานยุ่งมาก 😅" },
-  { who: "ฟ้า", me: true, text: "แต่โพสต์สตอรี่ตอนตีสองได้นะ" },
-  { who: "บีม", me: false, text: "อันนั้นมันคนละเรื่องเลย" },
-  { who: "ฟ้า", me: true, text: "ตกลงมาไหม" },
-  { who: "บีม", me: false, text: "น่าจะมา 🙄" },
-  { who: "ฟ้า", me: true, text: "โอเค" },
-  { who: "บีม", me: false, text: "อย่าโอเคแบบนั้นดิ" },
+  { me: true, text: "เสาร์นี้ว่างป่าว" },
+  { me: false, text: "เดี๋ยวดูก่อนนะ" },
+  { me: true, text: "จองร้านไว้แล้วนะ สองทุ่ม" },
+  { me: false, text: "โทษที เพิ่งเห็น งานยุ่งมาก 😅" },
+  { me: true, text: "แต่โพสต์สตอรี่ตอนตีสองได้นะ" },
+  { me: false, text: "อันนั้นมันคนละเรื่องเลย" },
+  { me: true, text: "ตกลงมาไหม" },
+  { me: false, text: "น่าจะมา 🙄" },
+  { me: true, text: "โอเค" },
+  { me: false, text: "อย่าโอเคแบบนั้นดิ" },
 ];
+
 const chatTypes = [
   "💞 แฟน / คนคุย",
   "👯 กลุ่มเพื่อน",
   "🏡 กลุ่มครอบครัว",
   "💼 กลุ่มที่ทำงาน",
-  "💔 แชทกับแฟนเก่า",
+  "💔 แฟนเก่า",
   "🫶 เพื่อนสนิท",
   "👀 คนที่แอบชอบ",
   "🌀 สถานะคลุมเครือ",
+  "🎓 กลุ่มเพื่อนมหา'ลัย",
+  "✈️ กลุ่มทริป",
 ];
+
 const steps = [
   {
+    i: "💬",
     t: "เลือกประเภทแชท",
     d: "แฟน เพื่อน ครอบครัว ที่ทำงาน — ป้าจะปรับโทนให้เข้ากับแชท",
   },
   {
+    i: "📤",
     t: "ส่งไฟล์แชท",
     d: "LINE หรือ WhatsApp มีคู่มือบอกวิธีส่งออกแชททีละขั้น",
   },
   {
+    i: "✅",
     t: "ยืนยันชื่อ",
-    d: "บอกป้าว่าใครคือคุณ รวมชื่อที่ซ้ำกัน (ขั้นนี้ทำให้รายงานแม่นขึ้นมาก)",
+    d: "บอกป้าว่าใครคือคุณ และรวมชื่อที่ซ้ำกัน ขั้นนี้ทำให้รายงานแม่นขึ้นมาก",
   },
   {
+    i: "🍵",
     t: "อ่านรายงาน",
-    d: "อ่านช่วงแรกฟรี ถ้าถูกใจค่อยปลดล็อกทั้งฉบับ แล้วแชร์เข้ากลุ่มได้",
+    d: "อ่านช่วงแรกฟรี ถูกใจค่อยปลดล็อกทั้งฉบับ แล้วแชร์เข้ากลุ่มได้",
   },
 ];
+
 const includes = [
   {
+    c: "peach",
     h: "เรื่องเล่าของทั้งแชท",
-    p: "ไม่ใช่สรุปแห้ง ๆ แต่เล่าว่ามีช่วงไหนอบอุ่น ช่วงไหนห่าง จุดเปลี่ยนคือเมื่อไร",
+    p: "ไม่ใช่สรุปแห้ง ๆ แต่เล่าว่าช่วงไหนอบอุ่น ช่วงไหนห่าง จุดเปลี่ยนคือเมื่อไร",
   },
   {
+    c: "lav",
     h: "ความเห็นรายคน",
-    p: "ทุกคนในแชทถูกอ่านด้วยมาตรฐานเดียวกัน รวมถึงคุณ ป้าไม่เข้าข้างใคร",
+    p: "ทุกคนถูกอ่านด้วยมาตรฐานเดียวกัน รวมถึงคุณ ป้าไม่เข้าข้างใคร",
   },
   {
+    c: "mint",
     h: "ตัวเลขที่นับจริง",
-    p: "ใครทักก่อน ตอบช้าแค่ไหน ใครพิมพ์เยอะกว่า — คำนวณด้วยโปรแกรม ไม่ใช่เดา",
+    p: "ใครทักก่อน ตอบช้าแค่ไหน ใครพิมพ์เยอะกว่า คำนวณด้วยโปรแกรม ไม่ใช่เดา",
   },
   {
-    h: "บทบาทที่เล่น vs บทบาทที่คิดว่าเล่น",
+    c: "rose",
+    h: "บทบาทที่เล่น vs ที่คิดว่าเล่น",
     p: "สิ่งที่เพื่อนเกรงใจไม่กล้าบอก และคนใกล้ตัวมักมองไม่เห็น",
   },
   {
+    c: "sun",
     h: "คำพูดจริงจากแชท",
-    p: "ทุกประโยคที่ป้ายกมาเป็นข้อความที่มีอยู่จริงในแชท ตรวจก่อนแสดงผล",
+    p: "ทุกประโยคที่ป้ายกมาเป็นข้อความที่มีอยู่จริง ตรวจก่อนแสดงผล",
   },
   {
+    c: "sky",
     h: "ข้อเสนอที่ทำได้จริง",
     p: "ไม่ใช่คำคมสวย ๆ แต่เป็นสิ่งเล็ก ๆ ที่ลองทำได้ภายในสัปดาห์นี้",
   },
 ];
+
 const privacy = [
   {
+    i: "🗑️",
     h: "ลบแชทอัตโนมัติ",
     p: "เป้าหมายนโยบาย: ลบไฟล์แชทภายใน 7 วันหลังรายงานล่าสุด และภายใน 48 ชั่วโมงถ้าไม่ได้ซื้อ",
   },
   {
+    i: "🚫",
     h: "ไม่เอาแชทไปเทรนโมเดล",
-    p: "ใช้ผู้ให้บริการ AI ที่ตกลงเงื่อนไขไม่นำข้อมูลไปเทรน และบอกชื่อผู้ให้บริการในนโยบาย",
+    p: "ใช้ผู้ให้บริการ AI ที่ตกลงเงื่อนไขไม่นำข้อมูลไปเทรน และระบุชื่อผู้ให้บริการในนโยบาย",
   },
   {
+    i: "🙈",
     h: "ไม่มีใครในทีมอ่านแชทคุณ",
     p: "รายงานสร้างโดย AI การเข้าถึงข้อมูลของทีมถูกจำกัดและมีบันทึก",
   },
   {
+    i: "✋",
     h: "ลบเองได้ทุกเมื่อ",
     p: "ลบแชท ลบรายงาน หรือลบบัญชีทั้งหมดเองได้จากหน้าบัญชี",
   },
 ];
+
 const tiers = [
   {
     n: "แชทสั้น",
     s: "ไม่เกิน ~2,000 ข้อความ",
-    p: "฿79",
-    note: "เช่น คนคุยใหม่ ๆ หรือกลุ่มที่เพิ่งตั้ง",
+    p: "79",
+    note: "คนคุยใหม่ ๆ หรือกลุ่มที่เพิ่งตั้ง",
   },
   {
     n: "แชททั่วไป",
     s: "~2,000–8,000 ข้อความ",
-    p: "฿129",
+    p: "129",
     note: "ขนาดที่เจอบ่อยที่สุดสำหรับแชทคู่",
     featured: true,
   },
   {
     n: "แชทยาว",
     s: "~8,000–25,000 ข้อความ",
-    p: "฿199",
-    note: "ป้าอ่านข้อความล่าสุดเป็นหลักและบอกช่วงที่อ่านชัดเจน",
+    p: "199",
+    note: "ป้าอ่านข้อความล่าสุดเป็นหลัก และบอกช่วงที่อ่านไว้ชัดเจน",
   },
 ];
+
 const faqs = [
   {
     q: "ฟรีจริงไหม?",
@@ -122,7 +146,7 @@ const faqs = [
   },
   {
     q: "คนในแชทจะรู้ไหมว่าเราอัปโหลด?",
-    a: "การส่งออกแชทไม่แจ้งเตือนใคร และป้าไม่ติดต่อใครในแชท แต่ถ้าแชร์ลิงก์รายงานให้คนอื่น เขาก็อ่านได้ — แชร์เมื่อพร้อมเท่านั้น",
+    a: "การส่งออกแชทไม่แจ้งเตือนใคร และป้าไม่ติดต่อใครในแชท แต่ถ้าแชร์ลิงก์รายงานให้คนอื่น เขาก็อ่านได้ แชร์เมื่อพร้อมเท่านั้น",
   },
   {
     q: "แม่นแค่ไหน?",
@@ -137,6 +161,32 @@ const faqs = [
     a: "เป้าหมายเริ่มต้นคือ LINE และ WhatsApp จากนั้น Instagram และ Messenger ส่วน Telegram, Discord ฯลฯ ขอโหวตความต้องการจากผู้ลงทะเบียนรอ",
   },
 ];
+
+// มาสคอตตัวละครแบบ SVG วาดเอง (ไม่ใช้ภาพของใคร)
+const mascot = `<svg viewBox="0 0 240 270" role="img" aria-label="ป้าเม้าท์ ตัวละครป้าผมม่วงใส่แว่น ถือถ้วยชา" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="#231a2e" stroke-opacity=".28" stroke-width="5" stroke-linecap="round">
+    <path d="M196 150c-8-10 8-16 0-28"/><path d="M212 154c-8-10 8-16 0-28"/>
+  </g>
+  <path d="M34 270c0-58 34-84 86-84s86 26 86 84z" fill="#fb7185"/>
+  <g fill="#fff" opacity=".85"><circle cx="70" cy="228" r="6"/><circle cx="104" cy="214" r="5"/><circle cx="140" cy="232" r="6"/><circle cx="176" cy="220" r="5"/><circle cx="92" cy="252" r="5"/><circle cx="160" cy="254" r="5"/></g>
+  <rect x="106" y="156" width="28" height="34" rx="12" fill="#f4b78f"/>
+  <g fill="#6d28d9"><circle cx="120" cy="104" r="76"/><circle cx="52" cy="84" r="24"/><circle cx="72" cy="46" r="24"/><circle cx="120" cy="30" r="25"/><circle cx="168" cy="46" r="24"/><circle cx="188" cy="84" r="24"/><circle cx="46" cy="126" r="20"/><circle cx="194" cy="126" r="20"/></g>
+  <ellipse cx="120" cy="112" rx="54" ry="58" fill="#ffd9b8"/>
+  <g fill="#7c3aed"><circle cx="82" cy="68" r="17"/><circle cx="106" cy="58" r="17"/><circle cx="134" cy="58" r="17"/><circle cx="158" cy="68" r="17"/></g>
+  <g fill="#fbbf24"><circle cx="66" cy="134" r="6"/><circle cx="174" cy="134" r="6"/></g>
+  <g fill="#fb7185" opacity=".45"><ellipse cx="82" cy="138" rx="10" ry="6"/><ellipse cx="158" cy="138" rx="10" ry="6"/></g>
+  <g fill="#fff" fill-opacity=".55" stroke="#231a2e" stroke-width="4"><circle cx="97" cy="116" r="18"/><circle cx="143" cy="116" r="18"/></g>
+  <path d="M115 115h10" stroke="#231a2e" stroke-width="4" stroke-linecap="round"/>
+  <g fill="#231a2e"><circle cx="99" cy="118" r="4.5"/><circle cx="141" cy="118" r="4.5"/></g>
+  <g fill="none" stroke="#231a2e" stroke-width="4" stroke-linecap="round"><path d="M84 92q12-9 25-1"/><path d="M131 88q13-10 26 0"/><path d="M103 146q18 14 36-3"/></g>
+  <g transform="translate(160 196)">
+    <ellipse cx="22" cy="50" rx="30" ry="6" fill="#231a2e" opacity=".12"/>
+    <path d="M0 6h44v12a22 22 0 0 1-44 0z" fill="#fff" stroke="#231a2e" stroke-width="3.5"/>
+    <path d="M44 14a10 10 0 0 1 0 16" fill="none" stroke="#231a2e" stroke-width="3.5"/>
+    <path d="M6 16h32" stroke="#fb7185" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="6" cy="34" r="11" fill="#ffd9b8" stroke="#231a2e" stroke-width="3"/>
+  </g>
+</svg>`;
 ---
 
 <!doctype html>
@@ -149,57 +199,74 @@ const faqs = [
     <meta name="robots" content="noindex, nofollow" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/fonts/chat-report/fonts.css" />
+    <link
+      rel="preload"
+      href="/fonts/chat-report/Prompt-800-thai.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
   </head>
   <body>
     <a class="skip" href="#main">ข้ามไปเนื้อหาหลัก</a>
 
     <div class="banner" role="note">
-      <strong>ต้นแบบ (Prototype)</strong> — หน้านี้ทดสอบแนวคิดเท่านั้น ยังไม่เปิดให้บริการ
-      ไม่มีการอัปโหลดแชท และไม่เก็บข้อมูลใด ๆ รายงานและแชทในหน้านี้เป็นตัวอย่างสมมติ
+      <b>ต้นแบบ (Prototype)</b> · ทดสอบแนวคิดเท่านั้น ยังไม่เปิดให้บริการ ไม่มีการอัปโหลดแชทและไม่เก็บข้อมูลใด
+      ๆ ตัวอย่างทั้งหมดเป็นข้อมูลสมมติ
     </div>
 
     <header class="top">
       <a class="brand" href="#top" aria-label="ป้าเม้าท์ กลับขึ้นบนสุด">
-        <span class="brand-mark" aria-hidden="true">🍵</span>
-        <span>ป้าเม้าท์</span>
+        <span class="brand-dot" aria-hidden="true">🍵</span>ป้าเม้าท์
       </a>
       <nav aria-label="เมนูหลัก">
         <a href="#how">วิธีใช้</a>
+        <a href="#includes">ในรายงาน</a>
         <a href="#privacy">ความเป็นส่วนตัว</a>
         <a href="#pricing">ราคา</a>
-        <a href="#faq">คำถามที่พบบ่อย</a>
-        <a class="btn btn-small" href="#waitlist">ลงทะเบียนรอ</a>
+        <a href="#faq">คำถาม</a>
+        <a class="btn btn-sm" href="#waitlist">ลงทะเบียนรอ</a>
       </nav>
     </header>
 
     <main id="main">
+      <!-- HERO -->
       <section class="hero" id="top">
         <div class="hero-copy">
-          <p class="eyebrow">AI อ่านแชทให้ ตรง แต่หวังดี</p>
+          <p class="pill">✨ AI อ่านแชทให้ ตรง แต่หวังดี</p>
           <h1>
-            ส่งแชทมา<br />แล้วป้าจะบอกว่า<br /><em>เกิดอะไรขึ้นจริง ๆ</em>
+            ส่งแชทมา<br />แล้วป้าจะบอกว่า<br /><span class="mark"
+              >เกิดอะไรขึ้นจริง ๆ</span
+            >
           </h1>
           <p class="lead">
             ป้าเม้าท์อ่านแชท LINE / WhatsApp ของคุณตั้งแต่ข้อความแรก
             แล้วเล่าให้ฟังว่าใครใส่ใจใคร ช่วงไหนที่อะไรเปลี่ยนไป
-            และบทบาทที่คุณเล่นอยู่ในสายตาคนอื่น
-            <strong>โดยไม่เข้าข้างใคร ไม่ประจบ</strong>
+            และบทบาทที่คุณเล่นอยู่ในสายตาคนอื่น — <b>ไม่เข้าข้างใคร ไม่ประจบ</b>
           </p>
           <div class="cta-row">
             <a class="btn" href="#waitlist">ลงทะเบียนรอทดลองฟรี</a>
             <a class="btn btn-ghost" href="#sample">ดูตัวอย่างรายงาน</a>
           </div>
-          <p class="fine">
-            อ่านช่วงแรกของรายงานฟรี · ไม่ต้องใส่บัตร · ลบแชทของคุณได้เอง
-          </p>
+          <ul class="ticks">
+            <li>อ่านช่วงแรกฟรี</li>
+            <li>ไม่ต้องใส่บัตร</li>
+            <li>ลบแชทได้เอง</li>
+          </ul>
         </div>
 
-        <div class="hero-demo" aria-label="ตัวอย่างแชทสมมติ">
+        <div class="stage" aria-label="ตัวอย่างแชทสมมติและความเห็นของป้า">
+          <div class="blob b1" aria-hidden="true"></div>
+          <div class="blob b2" aria-hidden="true"></div>
+
           <div class="phone">
             <div class="phone-head">
-              <span class="dot" aria-hidden="true"></span> ฟ้า & บีม
-              <small>ตัวอย่างสมมติ</small>
+              <span class="back" aria-hidden="true">‹</span>
+              <span class="avatar" aria-hidden="true">บ</span>
+              <span class="who"><b>บีม</b><small>ตัวอย่างแชทสมมติ</small></span>
             </div>
+            <div class="chat-day">วันนี้</div>
             <ol class="bubbles">
               {
                 chat.map((m, i) => (
@@ -207,38 +274,56 @@ const faqs = [
                     class={`bubble ${m.me ? "me" : "them"}`}
                     style={`--i:${i}`}
                   >
-                    <span class="who">{m.who}</span>
                     {m.text}
                   </li>
                 ))
               }
             </ol>
+            <p class="read">อ่านแล้ว 02:14</p>
           </div>
+
+          <div class="sticker s1" aria-hidden="true">⏱ ตอบช้าเฉลี่ย 4 ชม.</div>
+          <div class="sticker s2" aria-hidden="true">โอเค ≠ โอเค</div>
+
+          <div class="mascot" set:html={mascot} />
           <aside class="verdict" style="--i:11">
             <p class="verdict-tag">🍵 ป้าเม้าท์ว่า</p>
             <p>
-              ฟ้าถามเรื่องวันเสาร์ครั้งเดียว แต่ที่จริงถามว่า "ฉันสำคัญแค่ไหน" —
-              และคำว่า "โอเค" ตอนท้ายไม่ใช่โอเค
+              ฟ้าถามเรื่องวันเสาร์ครั้งเดียว แต่ที่จริงถามว่า <mark
+                >“ฉันสำคัญแค่ไหน”</mark
+              >
+              — และคำว่า “โอเค” ตอนท้ายไม่ใช่โอเค
             </p>
           </aside>
         </div>
       </section>
 
-      <section class="strip" aria-label="แชทที่ใช้ได้">
-        <p>ใช้กับแชทแบบไหนก็ได้ที่มีคนคุยกันตั้งแต่สองคน</p>
-        <ul class="chips">
-          {chatTypes.map(c => <li>{c}</li>)}
-        </ul>
+      <!-- MARQUEE -->
+      <section class="marquee" aria-label="แชทที่ใช้ได้">
+        <p class="marquee-title">แชทไหนก็ได้ ที่มีคนคุยกันตั้งแต่สองคนขึ้นไป</p>
+        <div class="track-wrap">
+          <ul class="track">
+            {chatTypes.map(c => <li>{c}</li>)}
+          </ul>
+          <ul class="track" aria-hidden="true">
+            {chatTypes.map(c => <li>{c}</li>)}
+          </ul>
+        </div>
       </section>
 
+      <!-- HOW -->
       <section class="block" id="how">
-        <h2>ใช้ง่าย ใน 4 ขั้นตอน</h2>
+        <p class="kicker">วิธีใช้</p>
+        <h2>ง่ายนิดเดียว 4 ขั้นตอน</h2>
         <ol class="steps">
           {
             steps.map((s, i) => (
-              <li>
-                <span class="num" aria-hidden="true">
+              <li class="reveal" style={`--d:${i * 70}ms`}>
+                <span class="step-num" aria-hidden="true">
                   {i + 1}
+                </span>
+                <span class="step-ico" aria-hidden="true">
+                  {s.i}
                 </span>
                 <h3>{s.t}</h3>
                 <p>{s.d}</p>
@@ -251,29 +336,47 @@ const faqs = [
         </p>
       </section>
 
-      <section class="block alt" id="includes">
-        <h2>ในรายงานมีอะไรบ้าง</h2>
-        <div class="grid">
+      <!-- INCLUDES -->
+      <section class="block tint" id="includes">
+        <p class="kicker">ในรายงาน</p>
+        <h2>ได้อะไรจากรายงานหนึ่งฉบับ</h2>
+        <div class="bento">
           {
-            includes.map(x => (
-              <article class="card">
+            includes.map((x, i) => (
+              <article class={`bcard ${x.c} reveal`} style={`--d:${i * 60}ms`}>
                 <h3>{x.h}</h3>
                 <p>{x.p}</p>
               </article>
             ))
           }
+          <figure
+            class="sharecard reveal"
+            aria-label="ตัวอย่างการ์ดแชร์ (สมมติ)"
+          >
+            <div class="share-mascot" set:html={mascot} aria-hidden="true" />
+            <p class="share-top">การ์ดแชร์ · ตัวอย่างสมมติ</p>
+            <blockquote>“โอเค” ของฟ้า<br />ไม่ใช่โอเค</blockquote>
+            <dl>
+              <div><dt>ทักก่อน</dt><dd>ฟ้า 71%</dd></div>
+              <div><dt>ตอบช้ากว่า</dt><dd>บีม</dd></div>
+              <div><dt>บทบาท</dt><dd>ผู้เสนอ</dd></div>
+            </dl>
+            <figcaption>ส่งเข้ากลุ่มได้ · ซ่อนชื่อได้</figcaption>
+          </figure>
         </div>
       </section>
 
+      <!-- SAMPLE -->
       <section class="block" id="sample">
-        <h2>หน้าตารายงาน (ตัวอย่างสมมติ)</h2>
+        <p class="kicker">ตัวอย่าง</p>
+        <h2>หน้าตารายงาน</h2>
         <p class="sub">
           ข้อความและตัวเลขด้านล่างเขียนขึ้นเพื่อแสดงรูปแบบ ไม่ได้มาจากแชทจริง
         </p>
         <div class="report" role="group" aria-label="ตัวอย่างรายงาน">
           <header class="report-head">
             <div>
-              <p class="eyebrow">รายงานฉบับที่ 1</p>
+              <p class="kicker k0">รายงานฉบับที่ 1</p>
               <h3>ฟ้า & บีม · 1,842 ข้อความ</h3>
             </div>
             <span class="badge">อ่านฟรี ~25%</span>
@@ -287,11 +390,12 @@ const faqs = [
             </p>
             <h4>ความเห็นรายคน</h4>
             <p>
-              <strong>ฟ้า</strong> — ถามตรงแต่ทดสอบอ้อม ๆ (ถามคำถามเดียวกันสามรอบในรูปแบบต่างกัน)
-              ความกังวลของฟ้าไม่ได้อยู่ที่วันเสาร์ แต่อยู่ที่การไม่ได้ลำดับความสำคัญ
+              <b>ฟ้า</b> — ถามตรงแต่ทดสอบอ้อม ๆ ถามคำถามเดียวกันสามรอบในรูปแบบต่างกัน
+              ความกังวลของฟ้าไม่ได้อยู่ที่วันเสาร์ แต่อยู่ที่
+              <mark>การไม่ได้ลำดับความสำคัญ</mark>
             </p>
             <p class="locked-line">
-              <strong>บีม</strong> — ตอบรับเสมอแต่ไม่ผูกมัด ใช้คำว่า "น่าจะ"
+              <b>บีม</b> — ตอบรับเสมอแต่ไม่ผูกมัด ใช้คำว่า “น่าจะ”
               <span class="blur" aria-hidden="true">
                 มากกว่าคำตอบที่ชัดเจน ซึ่งทำให้ฟ้าต้องเดาอยู่ตลอด
                 และนี่คือแพตเทิร์นที่เกิดขึ้นซ้ำในช่วงที่ผ่านมา…
@@ -299,48 +403,56 @@ const faqs = [
             </p>
             <div class="lock" role="note">
               <p>
-                🔒 ส่วนที่เหลือ: บทบาทที่เล่น · จุดเปลี่ยน · ข้อเสนอที่ลองทำได้
+                <b>🔒 ส่วนที่เหลือ</b> · บทบาทที่เล่น · จุดเปลี่ยน · ข้อเสนอที่ลองทำได้
               </p>
-              <a class="btn btn-small" href="#waitlist"
-                >ขอทดลองใช้กับแชทของตัวเอง</a
-              >
+              <a class="btn btn-sm" href="#waitlist">ขอทดลองกับแชทของตัวเอง</a>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="block alt" id="privacy">
-        <h2>ข้อมูลแชทเป็นเรื่องส่วนตัวมาก เราจึงออกแบบจากตรงนี้ก่อน</h2>
-        <div class="grid">
+      <!-- PRIVACY -->
+      <section class="block dark" id="privacy">
+        <p class="kicker light">ความเป็นส่วนตัว</p>
+        <h2>แชทเป็นเรื่องส่วนตัวมาก<br />เราจึงออกแบบจากตรงนี้ก่อน</h2>
+        <div class="pgrid">
           {
             privacy.map(x => (
-              <article class="card">
+              <article class="pcard">
+                <span class="pico" aria-hidden="true">
+                  {x.i}
+                </span>
                 <h3>{x.h}</h3>
                 <p>{x.p}</p>
               </article>
             ))
           }
         </div>
-        <p class="note">
-          ข้อความเหล่านี้คือ <strong>เป้าหมายนโยบาย</strong> ของผลิตภัณฑ์ ก่อนเปิดให้บริการจริงต้องมีนโยบายความเป็นส่วนตัวตามกฎหมาย
+        <p class="note light">
+          ข้อความเหล่านี้คือ <b>เป้าหมายนโยบาย</b> ของผลิตภัณฑ์ ก่อนเปิดให้บริการจริงต้องมีนโยบายความเป็นส่วนตัวตามกฎหมาย
           PDPA ที่ผ่านการตรวจโดยผู้เชี่ยวชาญ
         </p>
       </section>
 
+      <!-- PRICING -->
       <section class="block" id="pricing">
-        <h2>ราคา (ราคาทดลอง — ยังไม่ใช่ราคาจริง)</h2>
+        <p class="kicker">ราคา</p>
+        <h2>จ่ายต่อรายงาน ไม่ผูกมัด</h2>
         <p class="sub">
-          จ่ายต่อรายงาน ไม่มีสมัครสมาชิกอัตโนมัติ เห็นราคาก่อนจ่ายเสมอ ชำระผ่าน
+          ราคาทดลอง ยังไม่ใช่ราคาจริง · เห็นราคาก่อนจ่ายเสมอ · ชำระผ่าน
           PromptPay หรือบัตร
         </p>
         <div class="tiers">
           {
             tiers.map(t => (
               <article class={`tier${t.featured ? " featured" : ""}`}>
-                {t.featured && <span class="badge">พบบ่อยที่สุด</span>}
+                {t.featured && (
+                  <span class="badge tier-badge">พบบ่อยที่สุด</span>
+                )}
                 <h3>{t.n}</h3>
                 <p class="size">{t.s}</p>
                 <p class="price">
+                  <span class="cur">฿</span>
                   {t.p}
                   <small> / รายงาน</small>
                 </p>
@@ -351,24 +463,31 @@ const faqs = [
         </div>
         <ul class="extras">
           <li>
-            <strong>รายงานต่อเนื่อง ฿59–79</strong> — เพิ่มบริบทหรือข้อความใหม่ แล้วให้ป้าอ่านต่อ
+            <b>รายงานต่อเนื่อง ฿59–79</b><span
+              >เพิ่มบริบทหรือข้อความใหม่ แล้วให้ป้าอ่านต่อ</span
+            >
           </li>
           <li>
-            <strong>รายงานรวมหลายแชท ฿399–599</strong> — อ่านสองถึงห้าแชทพร้อมกัน
-            เพื่อดูภาพรวมของคุณ
+            <b>รวมหลายแชท ฿399–599</b><span
+              >อ่านสองถึงห้าแชทพร้อมกัน เพื่อดูภาพรวมของคุณ</span
+            >
           </li>
           <li>
-            <strong>คุยกับป้าผ่าน LINE (สมาชิกรายเดือน ~฿299)</strong> — กำลังพิจารณา
+            <b>คุยกับป้าผ่าน LINE ~฿299/เดือน</b><span
+              >สมาชิกรายเดือน กำลังพิจารณา</span
+            >
           </li>
         </ul>
         <p class="note">
-          ราคาทั้งหมดรวมภาษีแล้ว และจะทดสอบ/ปรับก่อนเปิดจริง
+          ราคารวมภาษีแล้ว และจะทดสอบ/ปรับก่อนเปิดจริง
           รายงานที่สร้างไม่สำเร็จคืนเงินเต็มจำนวนอัตโนมัติ
         </p>
       </section>
 
-      <section class="block alt" id="faq">
-        <h2>คำถามที่พบบ่อย</h2>
+      <!-- FAQ -->
+      <section class="block tint" id="faq">
+        <p class="kicker">คำถามที่พบบ่อย</p>
+        <h2>ถามมาได้เลย</h2>
         <div class="faq">
           {
             faqs.map(f => (
@@ -381,40 +500,47 @@ const faqs = [
         </div>
       </section>
 
-      <section class="block waitlist" id="waitlist">
-        <h2>อยากลองก่อนใคร?</h2>
-        <p class="sub">
-          ฝากอีเมลไว้ เมื่อเปิดทดลองจะแจ้งก่อน
-          และบอกเราด้วยว่าอยากให้รองรับแอปไหน
-        </p>
-        <form id="waitlist-form" novalidate>
-          <label for="wl-email">อีเมล</label>
-          <input
-            id="wl-email"
-            name="email"
-            type="email"
-            inputmode="email"
-            autocomplete="email"
-            placeholder="you@example.com"
-            required
-          />
-          <label for="wl-app">แชทที่อยากให้ป้าอ่านมากที่สุด</label>
-          <select id="wl-app" name="app">
-            <option value="line">LINE</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="instagram">Instagram / Messenger</option>
-            <option value="other">อื่น ๆ</option>
-          </select>
-          <label class="check">
-            <input type="checkbox" name="consent" required />
-            <span>
-              ยินยอมให้ติดต่อทางอีเมลเกี่ยวกับการเปิดทดลองใช้เท่านั้น
-              และขอถอนความยินยอมได้ทุกเมื่อ
-            </span>
-          </label>
-          <button class="btn" type="submit">ลงทะเบียนรอ</button>
-          <p id="wl-status" role="status" aria-live="polite"></p>
-        </form>
+      <!-- WAITLIST -->
+      <section class="block cta-panel" id="waitlist">
+        <div class="panel">
+          <div class="panel-copy">
+            <p class="kicker light">ลงทะเบียนรอ</p>
+            <h2>อยากลองก่อนใคร?</h2>
+            <p class="sub light">
+              ฝากอีเมลไว้ เมื่อเปิดทดลองจะแจ้งก่อน
+              และบอกเราด้วยว่าอยากให้รองรับแอปไหน
+            </p>
+            <form id="waitlist-form" novalidate>
+              <label for="wl-email">อีเมล</label>
+              <input
+                id="wl-email"
+                name="email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+              <label for="wl-app">แชทที่อยากให้ป้าอ่านมากที่สุด</label>
+              <select id="wl-app" name="app">
+                <option value="line">LINE</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="instagram">Instagram / Messenger</option>
+                <option value="other">อื่น ๆ</option>
+              </select>
+              <label class="check">
+                <input type="checkbox" name="consent" required />
+                <span>
+                  ยินยอมให้ติดต่อทางอีเมลเกี่ยวกับการเปิดทดลองใช้เท่านั้น
+                  และขอถอนความยินยอมได้ทุกเมื่อ
+                </span>
+              </label>
+              <button class="btn btn-light" type="submit">ลงทะเบียนรอ</button>
+              <p id="wl-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+          <div class="panel-art" set:html={mascot} aria-hidden="true" />
+        </div>
       </section>
     </main>
 
@@ -430,67 +556,106 @@ const faqs = [
       </p>
     </footer>
 
+    <a class="sticky-cta" id="sticky-cta" href="#waitlist"
+      >🍵 ลงทะเบียนรอทดลองฟรี</a
+    >
+
     <style is:global>
       :root {
-        --bg: #fff9f1;
-        --bg-alt: #fff1e0;
-        --ink: #2b1d16;
-        --muted: #6b5a50;
-        --line: #f0d9c2;
-        --accent: #c2410c;
-        --accent-ink: #ffffff;
+        --bg: #fffaf4;
+        --tint: #fdf1e7;
+        --ink: #231a2e;
+        --muted: #5b5069;
+        --line: #eadcd0;
         --card: #ffffff;
-        --me: #ffe3c9;
+        --violet: #6d28d9;
+        --pink: #db2777;
+        --grad: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
+        --marker: #fde68a;
+        --me: #c9f5d8;
         --them: #ffffff;
-        --shadow: 0 6px 24px rgba(120, 60, 20, 0.12);
-        --radius: 16px;
-        --maxw: 1080px;
+        --c-peach: #ffe5d0;
+        --c-lav: #ebe5ff;
+        --c-mint: #d5f6e4;
+        --c-rose: #ffe0ea;
+        --c-sun: #fff0b8;
+        --c-sky: #daecff;
+        --shadow: 0 18px 50px -18px rgba(76, 29, 149, 0.35);
+        --radius: 22px;
+        --maxw: 1120px;
+        --f-head: "Prompt", "Noto Sans Thai", "Leelawadee UI", Tahoma, system-ui,
+          sans-serif;
+        --f-body: "IBM Plex Sans Thai", "Noto Sans Thai", "Leelawadee UI",
+          Tahoma, system-ui, sans-serif;
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg: #1a1411;
-          --bg-alt: #221a16;
-          --ink: #f6ece4;
-          --muted: #c2b0a3;
-          --line: #3a2d26;
-          --accent: #fb923c;
-          --accent-ink: #1a1411;
-          --card: #261d18;
-          --me: #5a3416;
-          --them: #2d231d;
-          --shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+          --bg: #15101d;
+          --tint: #1b1527;
+          --ink: #f5eefc;
+          --muted: #bcb0cf;
+          --line: #35294a;
+          --card: #211a30;
+          --marker: #7c3aed66;
+          --me: #14532d;
+          --them: #2a2140;
+          --c-peach: #3a2417;
+          --c-lav: #2b2150;
+          --c-mint: #14352a;
+          --c-rose: #3b1a2a;
+          --c-sun: #3a3112;
+          --c-sky: #17304a;
+          --shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.7);
         }
       }
-      * {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
       }
       html {
         scroll-behavior: smooth;
-        scroll-padding-top: 72px;
+        scroll-padding-top: 76px;
       }
       body {
         margin: 0;
         background: var(--bg);
         color: var(--ink);
-        font-family:
-          "Noto Sans Thai",
-          "Sarabun",
-          "Leelawadee UI",
-          "Tahoma",
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          sans-serif;
-        line-height: 1.7;
+        font-family: var(--f-body);
         font-size: 17px;
+        line-height: 1.75;
         -webkit-text-size-adjust: 100%;
+        overflow-x: clip;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      .brand,
+      .btn,
+      .kicker,
+      .price,
+      .pill {
+        font-family: var(--f-head);
+      }
+      a {
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid var(--violet);
+        outline-offset: 3px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :focus-visible {
+          outline-color: #c4b5fd;
+        }
       }
       .skip {
         position: absolute;
         left: -999px;
         top: 0;
-        background: var(--accent);
-        color: var(--accent-ink);
+        background: var(--ink);
+        color: var(--bg);
         padding: 8px 14px;
         z-index: 100;
       }
@@ -498,347 +663,750 @@ const faqs = [
         left: 8px;
         top: 8px;
       }
-      a {
-        color: inherit;
-      }
-      a:focus-visible,
-      button:focus-visible,
-      summary:focus-visible,
-      input:focus-visible,
-      select:focus-visible {
-        outline: 3px solid var(--accent);
-        outline-offset: 2px;
-      }
       .banner {
         background: var(--ink);
         color: var(--bg);
         text-align: center;
         font-size: 14px;
         padding: 8px 16px;
+        line-height: 1.5;
       }
+
+      /* header */
       .top {
         position: sticky;
         top: 0;
-        z-index: 20;
+        z-index: 30;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
         padding: 10px max(16px, calc((100% - var(--maxw)) / 2));
-        background: color-mix(in srgb, var(--bg) 92%, transparent);
-        backdrop-filter: blur(8px);
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--line);
       }
       .brand {
-        font-weight: 800;
-        font-size: 1.15rem;
-        text-decoration: none;
         display: inline-flex;
-        gap: 8px;
         align-items: center;
+        gap: 8px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        text-decoration: none;
+      }
+      .brand-dot {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: var(--grad);
+        font-size: 18px;
       }
       .top nav {
         display: flex;
-        gap: 14px;
         align-items: center;
+        gap: 18px;
         font-size: 15px;
       }
-      .top nav a {
+      .top nav a:not(.btn) {
         text-decoration: none;
         color: var(--muted);
+        font-weight: 500;
       }
-      .top nav a:hover {
+      .top nav a:not(.btn):hover {
         color: var(--ink);
       }
-      .top nav a.btn {
-        color: var(--accent-ink);
-      }
-      @media (max-width: 760px) {
+      @media (max-width: 860px) {
         .top nav a:not(.btn) {
           display: none;
         }
       }
+
+      /* buttons */
       .btn {
-        display: inline-block;
-        background: var(--accent);
-        color: var(--accent-ink);
-        padding: 12px 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 50px;
+        padding: 12px 26px;
         border-radius: 999px;
+        border: 0;
+        background: var(--grad);
+        color: #fff;
         font-weight: 700;
+        font-size: 1rem;
         text-decoration: none;
-        border: 2px solid var(--accent);
-        font: inherit;
-        font-weight: 700;
         cursor: pointer;
-        min-height: 44px;
+        box-shadow: 0 10px 24px -10px rgba(219, 39, 119, 0.7);
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
       }
       .btn:hover {
-        filter: brightness(1.08);
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px -10px rgba(219, 39, 119, 0.8);
+      }
+      .btn-sm {
+        min-height: 40px;
+        padding: 6px 18px;
+        font-size: 0.92rem;
       }
       .btn-ghost {
         background: transparent;
-        color: var(--accent);
+        color: var(--ink);
+        box-shadow: inset 0 0 0 2px var(--ink);
       }
-      .btn-small {
-        padding: 6px 16px;
-        min-height: 36px;
-        font-size: 15px;
+      .btn-ghost:hover {
+        box-shadow: inset 0 0 0 2px var(--ink);
+        background: color-mix(in srgb, var(--ink) 8%, transparent);
       }
-      main section {
-        padding: 56px max(16px, calc((100% - var(--maxw)) / 2));
+      .btn-light {
+        background: #fff;
+        color: #4c1d95;
+        box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.5);
       }
-      .hero {
-        display: grid;
-        grid-template-columns: 1.1fr 0.9fr;
-        gap: 40px;
-        align-items: center;
-        padding-top: 48px;
+
+      /* layout */
+      main > section {
+        padding: 84px max(18px, calc((100% - var(--maxw)) / 2));
       }
-      @media (max-width: 860px) {
-        .hero {
-          grid-template-columns: 1fr;
+      .block h2 {
+        font-size: clamp(1.8rem, 4.6vw, 2.8rem);
+        font-weight: 800;
+        line-height: 1.25;
+        margin: 0 0 14px;
+        letter-spacing: -0.01em;
+      }
+      .kicker {
+        display: inline-block;
+        margin: 0 0 10px;
+        padding: 3px 14px;
+        border-radius: 999px;
+        background: var(--c-lav);
+        color: var(--violet);
+        font-weight: 700;
+        font-size: 0.85rem;
+      }
+      .kicker.k0 {
+        margin: 0 0 4px;
+      }
+      @media (prefers-color-scheme: dark) {
+        .kicker {
+          color: #d8ccff;
         }
       }
-      .eyebrow {
-        color: var(--accent);
-        font-weight: 700;
-        font-size: 14px;
-        letter-spacing: 0.02em;
-        margin: 0 0 8px;
+      .sub {
+        color: var(--muted);
+        margin: 0 0 28px;
+        max-width: 38em;
+      }
+      .note {
+        color: var(--muted);
+        font-size: 0.92rem;
+        margin: 22px 0 0;
+      }
+      .tint {
+        background: var(--tint);
+      }
+
+      /* hero */
+      .hero {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 36px;
+        align-items: center;
+        padding-top: 56px !important;
+        padding-bottom: 72px !important;
+        overflow-x: clip;
+        background: radial-gradient(
+            900px 480px at 85% 0%,
+            rgba(167, 139, 250, 0.35),
+            transparent 60%
+          ),
+          radial-gradient(
+            700px 420px at 0% 30%,
+            rgba(251, 146, 60, 0.28),
+            transparent 60%
+          ),
+          var(--bg);
+      }
+      @media (prefers-color-scheme: dark) {
+        .hero {
+          background: radial-gradient(
+              900px 480px at 85% 0%,
+              rgba(124, 58, 237, 0.35),
+              transparent 60%
+            ),
+            radial-gradient(
+              700px 420px at 0% 30%,
+              rgba(219, 39, 119, 0.2),
+              transparent 60%
+            ),
+            var(--bg);
+        }
+      }
+      @media (max-width: 920px) {
+        .hero {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+      }
+      .pill {
+        display: inline-block;
+        margin: 0 0 16px;
+        padding: 6px 16px;
+        border-radius: 999px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.3);
       }
       h1 {
-        font-size: clamp(2rem, 6vw, 3.4rem);
-        line-height: 1.25;
-        margin: 0 0 16px;
+        font-size: clamp(2.5rem, 7vw, 4.6rem);
+        font-weight: 800;
+        line-height: 1.18;
+        letter-spacing: -0.02em;
+        margin: 0 0 20px;
       }
-      h1 em {
-        font-style: normal;
-        color: var(--accent);
+      .mark {
+        color: var(--violet);
+        background: linear-gradient(transparent 64%, var(--marker) 64%);
+        padding: 0 4px;
+        border-radius: 4px;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
       }
-      h2 {
-        font-size: clamp(1.5rem, 4vw, 2rem);
-        line-height: 1.3;
-        margin: 0 0 12px;
-      }
-      h3 {
-        margin: 0 0 6px;
-        font-size: 1.1rem;
-      }
-      h4 {
-        margin: 18px 0 4px;
+      @media (prefers-color-scheme: dark) {
+        .mark {
+          color: #c4b5fd;
+        }
       }
       .lead {
-        font-size: 1.1rem;
+        font-size: 1.12rem;
         color: var(--muted);
-        max-width: 34em;
+        max-width: 33em;
+        margin: 0 0 26px;
       }
-      .lead strong {
+      .lead b {
         color: var(--ink);
       }
       .cta-row {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-        margin: 22px 0 10px;
+        margin-bottom: 18px;
       }
-      .fine,
-      .note,
-      .sub {
-        color: var(--muted);
-        font-size: 15px;
-      }
-      .sub {
-        margin: 0 0 20px;
-      }
-      .hero-demo {
-        position: relative;
-      }
-      .phone {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 28px;
-        box-shadow: var(--shadow);
-        overflow: hidden;
-        max-width: 380px;
-        margin-inline: auto;
-      }
-      .phone-head {
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--line);
-        font-weight: 700;
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .phone-head small {
-        margin-left: auto;
-        font-weight: 400;
-        color: var(--muted);
-        font-size: 12px;
-      }
-      .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #22c55e;
-      }
-      .bubbles {
-        list-style: none;
-        margin: 0;
-        padding: 14px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .bubble {
-        max-width: 82%;
-        padding: 8px 12px;
-        border-radius: 16px;
-        font-size: 15px;
-        line-height: 1.5;
-        opacity: 0;
-        transform: translateY(8px);
-        animation: pop 0.45s ease forwards;
-        animation-delay: calc(var(--i) * 0.45s + 0.3s);
-      }
-      .bubble.me {
-        align-self: flex-end;
-        background: var(--me);
-        border-bottom-right-radius: 4px;
-      }
-      .bubble.them {
-        align-self: flex-start;
-        background: var(--them);
-        border: 1px solid var(--line);
-        border-bottom-left-radius: 4px;
-      }
-      .who {
-        display: block;
-        font-size: 11px;
-        color: var(--muted);
-      }
-      .verdict {
-        margin: -18px auto 0;
-        position: relative;
-        max-width: 330px;
-        background: var(--ink);
-        color: var(--bg);
-        padding: 14px 18px;
-        border-radius: 18px;
-        box-shadow: var(--shadow);
-        opacity: 0;
-        transform: translateY(10px);
-        animation: pop 0.6s ease forwards;
-        animation-delay: calc(var(--i) * 0.45s + 0.6s);
-        font-size: 15px;
-      }
-      .verdict p {
-        margin: 0;
-      }
-      .verdict-tag {
-        font-weight: 800;
-        margin-bottom: 4px !important;
-      }
-      @keyframes pop {
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        html {
-          scroll-behavior: auto;
-        }
-        .bubble,
-        .verdict {
-          animation: none;
-          opacity: 1;
-          transform: none;
-        }
-      }
-      .strip {
-        text-align: center;
-        padding-block: 28px !important;
-        border-block: 1px solid var(--line);
-        background: var(--bg-alt);
-      }
-      .strip p {
-        margin: 0 0 12px;
-        color: var(--muted);
-      }
-      .chips {
+      .ticks {
         list-style: none;
         margin: 0;
         padding: 0;
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        justify-content: center;
+        gap: 6px 20px;
+        font-size: 0.95rem;
+        color: var(--muted);
       }
-      .chips li {
+      .ticks li::before {
+        content: "✓";
+        color: #16a34a;
+        font-weight: 800;
+        margin-right: 6px;
+      }
+
+      /* hero stage */
+      .stage {
+        position: relative;
+        padding: 8px 0 112px;
+      }
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(2px);
+        z-index: 0;
+      }
+      .b1 {
+        width: 330px;
+        height: 330px;
+        right: -30px;
+        top: 20px;
+        background: #c4b5fd;
+        opacity: 0.55;
+      }
+      .b2 {
+        width: 220px;
+        height: 220px;
+        left: -20px;
+        bottom: 40px;
+        background: #fdba74;
+        opacity: 0.5;
+      }
+      @media (prefers-color-scheme: dark) {
+        .b1 {
+          opacity: 0.25;
+        }
+        .b2 {
+          opacity: 0.2;
+        }
+      }
+      .phone {
+        position: relative;
+        z-index: 1;
+        width: 340px;
+        max-width: 92%;
+        margin-left: auto;
+        padding-bottom: 28px;
         background: var(--card);
         border: 1px solid var(--line);
-        padding: 6px 14px;
+        border-radius: 34px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transform: rotate(2deg);
+      }
+      .phone-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: #4ade80;
+        color: #052e16;
+      }
+      .back {
+        font-size: 26px;
+        line-height: 1;
+        font-weight: 700;
+      }
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #fff;
+        color: #166534;
+        font-family: var(--f-head);
+        font-weight: 700;
+      }
+      .who {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+      }
+      .who small {
+        font-size: 11px;
+        opacity: 0.75;
+      }
+      .chat-day {
+        align-self: center;
+        width: max-content;
+        margin: 10px auto 0;
+        padding: 1px 12px;
+        font-size: 11px;
         border-radius: 999px;
-        font-size: 15px;
+        background: color-mix(in srgb, var(--ink) 12%, transparent);
+        color: var(--muted);
       }
-      .alt {
-        background: var(--bg-alt);
+      .bubbles {
+        list-style: none;
+        margin: 0;
+        padding: 10px 14px 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
       }
+      .bubble {
+        max-width: 80%;
+        padding: 7px 13px;
+        border-radius: 18px;
+        font-size: 14.5px;
+        line-height: 1.5;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: pop 0.45s ease forwards;
+        animation-delay: calc(var(--i) * 0.4s + 0.3s);
+      }
+      .bubble.me {
+        align-self: flex-end;
+        background: var(--me);
+        border-bottom-right-radius: 5px;
+        color: #052e16;
+      }
+      .bubble.them {
+        align-self: flex-start;
+        background: var(--them);
+        border: 1px solid var(--line);
+        border-bottom-left-radius: 5px;
+      }
+      @media (prefers-color-scheme: dark) {
+        .bubble.me {
+          color: #dcfce7;
+        }
+      }
+      .read {
+        margin: 0;
+        padding: 0 16px 14px;
+        text-align: right;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .sticker {
+        position: absolute;
+        z-index: 3;
+        padding: 6px 14px;
+        border-radius: 14px;
+        font-family: var(--f-head);
+        font-weight: 700;
+        font-size: 0.85rem;
+        box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        animation: pop 0.5s ease forwards;
+      }
+      .s1 {
+        top: 34px;
+        right: -10px;
+        background: var(--marker);
+        color: #422006;
+        transform: rotate(6deg);
+        animation-delay: 1.6s;
+      }
+      .s2 {
+        top: 280px;
+        left: 36px;
+        background: #fff;
+        color: var(--pink);
+        border: 2px solid var(--pink);
+        transform: rotate(-6deg);
+        animation-delay: 2.3s;
+      }
+      @media (prefers-color-scheme: dark) {
+        .s2 {
+          background: #2a2140;
+          color: #f9a8d4;
+          border-color: #f9a8d4;
+        }
+        .s1 {
+          background: #fcd34d;
+        }
+      }
+      .mascot {
+        position: absolute;
+        z-index: 4;
+        left: 0;
+        bottom: 0;
+        width: 176px;
+        filter: drop-shadow(0 12px 18px rgba(35, 26, 46, 0.3));
+        opacity: 0;
+        animation: pop 0.6s ease forwards;
+        animation-delay: 3.2s;
+      }
+      .mascot svg,
+      .share-mascot svg,
+      .panel-art svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .verdict {
+        position: absolute;
+        z-index: 5;
+        right: -6px;
+        bottom: 6px;
+        width: min(290px, 84%);
+        padding: 14px 18px;
+        border-radius: 20px 20px 6px 20px;
+        background: var(--ink);
+        color: var(--bg);
+        box-shadow: var(--shadow);
+        font-size: 14.5px;
+        line-height: 1.6;
+        opacity: 0;
+        animation: pop 0.6s ease forwards;
+        animation-delay: calc(var(--i) * 0.4s + 0.1s);
+      }
+      .verdict p {
+        margin: 0;
+      }
+      .verdict-tag {
+        font-family: var(--f-head);
+        font-weight: 800;
+        margin-bottom: 2px !important;
+      }
+      .verdict mark {
+        background: #fcd34d;
+        color: #231a2e;
+        padding: 0 4px;
+        border-radius: 4px;
+      }
+      @keyframes pop {
+        to {
+          opacity: 1;
+          transform: var(--end, none);
+        }
+      }
+      .s1 {
+        --end: rotate(6deg);
+      }
+      .s2 {
+        --end: rotate(-6deg);
+      }
+      @media (max-width: 920px) {
+        .stage {
+          padding-bottom: 150px;
+        }
+        .phone {
+          margin-inline: auto;
+        }
+        .mascot {
+          width: 128px;
+        }
+        .verdict {
+          right: 0;
+          width: calc(100% - 140px);
+          max-width: 300px;
+        }
+        .s1 {
+          right: 6px;
+        }
+      }
+      @media (max-width: 560px) {
+        .s2 {
+          display: none;
+        }
+      }
+
+      /* marquee */
+      .marquee {
+        padding: 30px 0 !important;
+        background: var(--ink);
+        color: var(--bg);
+        overflow: hidden;
+      }
+      .marquee-title {
+        margin: 0 0 12px;
+        text-align: center;
+        font-size: 0.9rem;
+        opacity: 0.75;
+      }
+      .track-wrap {
+        display: flex;
+        width: max-content;
+        animation: scroll 38s linear infinite;
+      }
+      .track {
+        display: flex;
+        gap: 12px;
+        margin: 0;
+        padding: 0 6px;
+        list-style: none;
+      }
+      .track li {
+        white-space: nowrap;
+        padding: 6px 18px;
+        border-radius: 999px;
+        border: 1px solid color-mix(in srgb, var(--bg) 35%, transparent);
+        font-weight: 500;
+      }
+      @keyframes scroll {
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
+      /* steps */
       .steps {
         list-style: none;
-        margin: 24px 0 8px;
+        margin: 30px 0 0;
         padding: 0;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-        gap: 16px;
-        counter-reset: s;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 18px;
       }
       .steps li {
+        position: relative;
         background: var(--card);
         border: 1px solid var(--line);
         border-radius: var(--radius);
-        padding: 18px;
+        padding: 26px 22px 22px;
+        overflow: hidden;
+      }
+      .step-num {
+        position: absolute;
+        right: 14px;
+        top: -8px;
+        font-family: var(--f-head);
+        font-weight: 800;
+        font-size: 5rem;
+        line-height: 1;
+        background: var(--grad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        opacity: 0.22;
+      }
+      .step-ico {
+        display: grid;
+        place-items: center;
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: var(--c-lav);
+        font-size: 26px;
+        margin-bottom: 12px;
+      }
+      .steps h3 {
+        margin: 0 0 4px;
+        font-size: 1.15rem;
+        font-weight: 700;
       }
       .steps p {
         margin: 0;
         color: var(--muted);
-        font-size: 15px;
+        font-size: 0.96rem;
       }
-      .num {
-        display: inline-grid;
-        place-items: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: var(--accent);
-        color: var(--accent-ink);
-        font-weight: 800;
-        margin-bottom: 8px;
-      }
-      .grid {
+
+      /* bento */
+      .bento {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 16px;
-        margin-top: 20px;
+        margin-top: 30px;
       }
-      .card {
-        background: var(--card);
-        border: 1px solid var(--line);
+      @media (max-width: 960px) {
+        .bento {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 620px) {
+        .bento {
+          grid-template-columns: 1fr;
+        }
+      }
+      .bcard {
+        padding: 24px;
         border-radius: var(--radius);
-        padding: 18px;
+        color: var(--ink);
       }
-      .card p {
+      .bcard h3 {
+        margin: 0 0 6px;
+        font-size: 1.12rem;
+        font-weight: 700;
+      }
+      .bcard p {
         margin: 0;
-        color: var(--muted);
-        font-size: 15px;
+        font-size: 0.96rem;
+        color: color-mix(in srgb, var(--ink) 78%, transparent);
       }
+      .bcard.peach {
+        background: var(--c-peach);
+      }
+      .bcard.lav {
+        background: var(--c-lav);
+      }
+      .bcard.mint {
+        background: var(--c-mint);
+      }
+      .bcard.rose {
+        background: var(--c-rose);
+      }
+      .bcard.sun {
+        background: var(--c-sun);
+      }
+      .bcard.sky {
+        background: var(--c-sky);
+      }
+      .sharecard {
+        grid-column: 3;
+        grid-row: 1 / span 3;
+        position: relative;
+        margin: 0;
+        padding: 26px 24px 22px;
+        border-radius: 28px;
+        background: linear-gradient(160deg, #6d28d9 0%, #be185d 100%);
+        color: #fff;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 460px;
+      }
+      @media (max-width: 960px) {
+        .sharecard {
+          grid-column: 1 / -1;
+          grid-row: auto;
+          min-height: 0;
+        }
+      }
+      .share-top {
+        margin: 0;
+        font-size: 0.8rem;
+        opacity: 0.85;
+        font-family: var(--f-head);
+        font-weight: 500;
+      }
+      .sharecard blockquote {
+        margin: 0;
+        font-family: var(--f-head);
+        font-weight: 800;
+        font-size: 1.9rem;
+        line-height: 1.3;
+        max-width: 8em;
+      }
+      .sharecard dl {
+        margin: 6px 0 0;
+        display: grid;
+        gap: 8px;
+        max-width: 190px;
+      }
+      .sharecard dl div {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 6px 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 0.88rem;
+      }
+      .sharecard dt {
+        opacity: 0.85;
+      }
+      .sharecard dd {
+        margin: 0;
+        font-weight: 700;
+      }
+      .sharecard figcaption {
+        margin-top: auto;
+        font-size: 0.82rem;
+        opacity: 0.85;
+        position: relative;
+        z-index: 2;
+      }
+      .share-mascot {
+        position: absolute;
+        right: -12px;
+        bottom: 14px;
+        width: 150px;
+      }
+      @media (max-width: 960px) {
+        .share-mascot {
+          width: 170px;
+          bottom: 0;
+        }
+        .sharecard {
+          min-height: 330px;
+        }
+      }
+
+      /* sample report */
       .report {
+        max-width: 780px;
         background: var(--card);
         border: 1px solid var(--line);
-        border-radius: var(--radius);
+        border-radius: 26px;
         box-shadow: var(--shadow);
-        max-width: 760px;
         overflow: hidden;
       }
       .report-head {
@@ -846,151 +1414,467 @@ const faqs = [
         justify-content: space-between;
         gap: 12px;
         align-items: flex-start;
-        padding: 18px 22px;
-        border-bottom: 1px solid var(--line);
+        padding: 22px 28px;
+        background: var(--c-lav);
       }
       .report-head h3 {
         margin: 0;
-      }
-      .report-body {
-        padding: 6px 22px 22px;
+        font-size: 1.25rem;
       }
       .badge {
-        background: var(--accent);
-        color: var(--accent-ink);
-        font-size: 12px;
+        background: var(--grad);
+        color: #fff;
+        font-family: var(--f-head);
+        font-size: 0.78rem;
         font-weight: 700;
-        padding: 3px 10px;
+        padding: 3px 12px;
         border-radius: 999px;
         white-space: nowrap;
       }
+      .report-body {
+        padding: 6px 28px 28px;
+      }
+      .report-body h4 {
+        margin: 22px 0 4px;
+        font-size: 1.05rem;
+        color: var(--violet);
+      }
+      @media (prefers-color-scheme: dark) {
+        .report-body h4 {
+          color: #c4b5fd;
+        }
+      }
+      .report-body p {
+        margin: 0 0 8px;
+      }
+      .report mark {
+        background: linear-gradient(transparent 55%, var(--marker) 55%);
+        color: inherit;
+        padding: 0 2px;
+      }
       .blur {
-        filter: blur(5px);
+        filter: blur(5.5px);
         user-select: none;
       }
       .lock {
-        margin-top: 14px;
-        padding: 16px;
+        margin-top: 18px;
+        padding: 18px;
+        border-radius: 16px;
         border: 2px dashed var(--line);
-        border-radius: 12px;
         text-align: center;
+        display: grid;
+        gap: 10px;
+        justify-items: center;
       }
       .lock p {
-        margin: 0 0 8px;
+        margin: 0;
       }
+
+      /* privacy */
+      .dark {
+        background: radial-gradient(
+            700px 360px at 90% 0%,
+            rgba(124, 58, 237, 0.45),
+            transparent 60%
+          ),
+          #1b1230;
+        color: #f5eefc;
+      }
+      .dark h2 {
+        color: #fff;
+      }
+      .kicker.light {
+        background: rgba(255, 255, 255, 0.14);
+        color: #fff;
+      }
+      .pgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+        margin-top: 30px;
+      }
+      .pcard {
+        padding: 24px;
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+      }
+      .pico {
+        display: grid;
+        place-items: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 24px;
+        margin-bottom: 12px;
+      }
+      .pcard h3 {
+        margin: 0 0 4px;
+        font-size: 1.1rem;
+        color: #fff;
+      }
+      .pcard p {
+        margin: 0;
+        color: #d9cdee;
+        font-size: 0.95rem;
+      }
+      .note.light {
+        color: #cbbde3;
+      }
+
+      /* pricing */
       .tiers {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 18px;
+        align-items: stretch;
       }
       .tier {
         position: relative;
+        padding: 28px 24px;
         background: var(--card);
         border: 1px solid var(--line);
-        border-radius: var(--radius);
-        padding: 20px;
+        border-radius: 26px;
       }
-      .tier.featured {
-        border: 2px solid var(--accent);
-        box-shadow: var(--shadow);
-      }
-      .tier .badge {
-        position: absolute;
-        top: -12px;
-        right: 16px;
+      .tier h3 {
+        margin: 0;
+        font-size: 1.2rem;
       }
       .size,
       .tier-note {
-        color: var(--muted);
-        font-size: 14px;
         margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
       }
       .price {
-        font-size: 2.2rem;
+        margin: 10px 0 8px;
+        font-size: 3.2rem;
         font-weight: 800;
-        margin: 8px 0 4px;
+        line-height: 1.1;
+      }
+      .price .cur {
+        font-size: 1.6rem;
+        margin-right: 2px;
+        vertical-align: 0.5em;
       }
       .price small {
         font-size: 0.9rem;
-        font-weight: 400;
+        font-weight: 500;
         color: var(--muted);
       }
+      .tier.featured {
+        background: var(--grad);
+        color: #fff;
+        border: 0;
+        box-shadow: var(--shadow);
+        transform: translateY(-8px);
+      }
+      .tier.featured .size,
+      .tier.featured .tier-note,
+      .tier.featured .price small {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .tier-badge {
+        position: absolute;
+        top: -13px;
+        right: 20px;
+        background: var(--marker);
+        color: #422006;
+      }
       .extras {
-        margin: 22px 0 8px;
-        padding-left: 20px;
+        list-style: none;
+        margin: 30px 0 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+      }
+      .extras li {
+        padding: 16px 18px;
+        border-radius: 16px;
+        background: var(--tint);
+        display: grid;
+        gap: 2px;
+      }
+      .extras span {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      /* faq */
+      .faq {
+        margin-top: 26px;
+        max-width: 820px;
       }
       .faq details {
         background: var(--card);
         border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 4px 16px;
-        margin-bottom: 10px;
+        border-radius: 18px;
+        padding: 2px 20px;
+        margin-bottom: 12px;
       }
       .faq summary {
         cursor: pointer;
-        font-weight: 700;
-        padding: 12px 0;
+        font-family: var(--f-head);
+        font-weight: 600;
+        padding: 14px 0;
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq summary::after {
+        content: "+";
+        font-size: 1.5rem;
+        line-height: 1;
+        color: var(--violet);
+      }
+      .faq details[open] summary::after {
+        content: "–";
       }
       .faq p {
-        margin: 0 0 14px;
+        margin: 0 0 16px;
         color: var(--muted);
       }
-      .waitlist form {
+
+      /* waitlist */
+      .cta-panel {
+        padding-top: 40px !important;
+        padding-bottom: 90px !important;
+      }
+      .panel {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 20px;
+        align-items: end;
+        padding: 48px 48px 0;
+        border-radius: 34px;
+        background: linear-gradient(135deg, #5b21b6 0%, #be185d 100%);
+        color: #fff;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      @media (max-width: 820px) {
+        .panel {
+          grid-template-columns: 1fr;
+          padding: 32px 22px 0;
+        }
+      }
+      .panel-copy {
+        padding-bottom: 48px;
+      }
+      .panel h2 {
+        color: #fff;
+        margin-bottom: 8px;
+      }
+      .sub.light {
+        color: #f3e8ff;
+        margin-bottom: 20px;
+      }
+      .panel-art {
+        width: min(300px, 70%);
+        justify-self: center;
+        margin-bottom: -8px;
+      }
+      @media (max-width: 820px) {
+        .panel-art {
+          width: 190px;
+          margin-top: -20px;
+        }
+      }
+      #waitlist-form {
         display: grid;
         gap: 10px;
-        max-width: 480px;
+        max-width: 460px;
       }
-      .waitlist label {
-        font-weight: 700;
-        font-size: 15px;
+      #waitlist-form label {
+        font-weight: 600;
+        font-size: 0.95rem;
       }
-      .waitlist input[type="email"],
-      .waitlist select {
+      #waitlist-form input[type="email"],
+      #waitlist-form select {
         font: inherit;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 1px solid var(--muted);
-        background: var(--card);
-        color: var(--ink);
-        min-height: 46px;
+        min-height: 50px;
+        padding: 10px 16px;
+        border-radius: 14px;
+        border: 2px solid transparent;
+        background: #fff;
+        color: #231a2e;
       }
-      .waitlist .check {
+      #waitlist-form .check {
         display: flex;
         gap: 10px;
         align-items: flex-start;
         font-weight: 400;
+        font-size: 0.9rem;
+        line-height: 1.55;
       }
-      .waitlist .check input {
-        margin-top: 6px;
+      #waitlist-form .check input {
+        margin-top: 4px;
         width: 18px;
         height: 18px;
-        accent-color: var(--accent);
+        accent-color: #fbbf24;
+        flex: none;
+      }
+      #waitlist-form :focus-visible {
+        outline-color: #fde68a;
       }
       #wl-status {
-        min-height: 1.5em;
+        min-height: 1.6em;
         margin: 0;
-        font-size: 15px;
+        font-size: 0.95rem;
+        color: #fff;
       }
       #wl-status.err {
-        color: #b91c1c;
+        color: #fecaca;
+        font-weight: 600;
       }
-      @media (prefers-color-scheme: dark) {
-        #wl-status.err {
-          color: #fca5a5;
-        }
-      }
+
       .foot {
+        padding: 28px max(18px, calc((100% - var(--maxw)) / 2)) 96px;
         border-top: 1px solid var(--line);
-        padding: 28px max(16px, calc((100% - var(--maxw)) / 2));
         color: var(--muted);
-        font-size: 14px;
+        font-size: 0.88rem;
       }
       .foot p {
         margin: 0 0 6px;
       }
+
+      /* sticky mobile cta */
+      .sticky-cta {
+        position: fixed;
+        left: 50%;
+        bottom: 14px;
+        transform: translate(-50%, 140%);
+        z-index: 40;
+        padding: 12px 24px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--bg);
+        font-family: var(--f-head);
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6);
+        transition: transform 0.3s ease;
+        white-space: nowrap;
+      }
+      .sticky-cta.show {
+        transform: translate(-50%, 0);
+      }
+      @media (min-width: 861px) {
+        .sticky-cta {
+          display: none;
+        }
+      }
+
+      /* reveal on scroll (JS adds .js) */
+      .js .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 0.6s ease var(--d, 0ms),
+          transform 0.6s ease var(--d, 0ms);
+      }
+      .js .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .bubble,
+        .verdict,
+        .sticker,
+        .mascot {
+          animation: none;
+          opacity: 1;
+        }
+        .bubble {
+          transform: none;
+        }
+        .verdict {
+          transform: none;
+        }
+        .s1 {
+          transform: rotate(6deg);
+        }
+        .s2 {
+          transform: rotate(-6deg);
+        }
+        .track-wrap {
+          animation: none;
+          flex-wrap: wrap;
+          width: auto;
+          justify-content: center;
+        }
+        .track[aria-hidden="true"] {
+          display: none;
+        }
+        .track {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+        .js .reveal,
+        .btn {
+          transition: none;
+        }
+        .js .reveal {
+          opacity: 1;
+          transform: none;
+        }
+      }
     </style>
 
     <script is:inline>
+      document.documentElement.classList.add("js");
+      (function () {
+        // reveal on scroll + sticky CTA (ไม่มี IntersectionObserver ก็แสดงเนื้อหาปกติ)
+        var reveals = document.querySelectorAll(".reveal");
+        if ("IntersectionObserver" in window) {
+          var io = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (en) {
+                if (en.isIntersecting) {
+                  en.target.classList.add("in");
+                  io.unobserve(en.target);
+                }
+              });
+            },
+            { threshold: 0.12 }
+          );
+          reveals.forEach(function (el) {
+            io.observe(el);
+          });
+          var sticky = document.getElementById("sticky-cta");
+          var hero = document.getElementById("top");
+          var wl = document.getElementById("waitlist");
+          var heroOut = false,
+            wlIn = false;
+          function upd() {
+            if (sticky) sticky.classList.toggle("show", heroOut && !wlIn);
+          }
+          new IntersectionObserver(function (e) {
+            heroOut = !e[0].isIntersecting;
+            upd();
+          }).observe(hero);
+          new IntersectionObserver(function (e) {
+            wlIn = e[0].isIntersecting;
+            upd();
+          }).observe(wl);
+        } else {
+          reveals.forEach(function (el) {
+            el.classList.add("in");
+          });
+        }
+      })();
+
       // Waitlist form (prototype).
       // WAITLIST_ENDPOINT ว่างไว้โดยตั้งใจ: ยังไม่มี backend จึงไม่บันทึก/ส่งข้อมูลใด ๆ
       // เมื่อมี endpoint จริง (เช่น ฟังก์ชัน serverless + ฐานข้อมูล) ให้ใส่ URL ที่นี่

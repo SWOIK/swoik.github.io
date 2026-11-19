@@ -1,0 +1,1047 @@
+---
+// ต้นแบบ landing page (ภาษาไทย) สำหรับผลิตภัณฑ์ "รายงานแชทด้วย AI"
+// ชื่อ "ป้าเม้าท์" เป็นชื่อชั่วคราว ต้องตรวจเครื่องหมายการค้า/โดเมนก่อนใช้จริง
+// ราคาและข้อความนโยบายเป็นสมมติฐานจาก docs/chat-report-product/*
+// หน้านี้ไม่ประมวลผลหรือเก็บข้อมูลผู้ใช้ใด ๆ (ดูสคริปต์ท้ายไฟล์)
+const title = "ป้าเม้าท์ — ส่งแชทมา แล้วฟังว่าเกิดอะไรขึ้นจริง ๆ (ต้นแบบ)";
+const description =
+  "ต้นแบบแนวคิด: อัปโหลดแชท LINE / WhatsApp แล้วให้ AI อ่านทั้งแชทและเล่าให้ฟังตรง ๆ ว่าใครใส่ใจใคร บทบาทของคุณคืออะไร";
+const chat = [
+  { who: "ฟ้า", me: true, text: "เสาร์นี้ว่างป่าว" },
+  { who: "บีม", me: false, text: "เดี๋ยวดูก่อนนะ" },
+  { who: "ฟ้า", me: true, text: "จองร้านไว้แล้วนะ สองทุ่ม" },
+  { who: "บีม", me: false, text: "โทษที เพิ่งเห็น งานยุ่งมาก 😅" },
+  { who: "ฟ้า", me: true, text: "แต่โพสต์สตอรี่ตอนตีสองได้นะ" },
+  { who: "บีม", me: false, text: "อันนั้นมันคนละเรื่องเลย" },
+  { who: "ฟ้า", me: true, text: "ตกลงมาไหม" },
+  { who: "บีม", me: false, text: "น่าจะมา 🙄" },
+  { who: "ฟ้า", me: true, text: "โอเค" },
+  { who: "บีม", me: false, text: "อย่าโอเคแบบนั้นดิ" },
+];
+const chatTypes = [
+  "💞 แฟน / คนคุย",
+  "👯 กลุ่มเพื่อน",
+  "🏡 กลุ่มครอบครัว",
+  "💼 กลุ่มที่ทำงาน",
+  "💔 แชทกับแฟนเก่า",
+  "🫶 เพื่อนสนิท",
+  "👀 คนที่แอบชอบ",
+  "🌀 สถานะคลุมเครือ",
+];
+const steps = [
+  {
+    t: "เลือกประเภทแชท",
+    d: "แฟน เพื่อน ครอบครัว ที่ทำงาน — ป้าจะปรับโทนให้เข้ากับแชท",
+  },
+  {
+    t: "ส่งไฟล์แชท",
+    d: "LINE หรือ WhatsApp มีคู่มือบอกวิธีส่งออกแชททีละขั้น",
+  },
+  {
+    t: "ยืนยันชื่อ",
+    d: "บอกป้าว่าใครคือคุณ รวมชื่อที่ซ้ำกัน (ขั้นนี้ทำให้รายงานแม่นขึ้นมาก)",
+  },
+  {
+    t: "อ่านรายงาน",
+    d: "อ่านช่วงแรกฟรี ถ้าถูกใจค่อยปลดล็อกทั้งฉบับ แล้วแชร์เข้ากลุ่มได้",
+  },
+];
+const includes = [
+  {
+    h: "เรื่องเล่าของทั้งแชท",
+    p: "ไม่ใช่สรุปแห้ง ๆ แต่เล่าว่ามีช่วงไหนอบอุ่น ช่วงไหนห่าง จุดเปลี่ยนคือเมื่อไร",
+  },
+  {
+    h: "ความเห็นรายคน",
+    p: "ทุกคนในแชทถูกอ่านด้วยมาตรฐานเดียวกัน รวมถึงคุณ ป้าไม่เข้าข้างใคร",
+  },
+  {
+    h: "ตัวเลขที่นับจริง",
+    p: "ใครทักก่อน ตอบช้าแค่ไหน ใครพิมพ์เยอะกว่า — คำนวณด้วยโปรแกรม ไม่ใช่เดา",
+  },
+  {
+    h: "บทบาทที่เล่น vs บทบาทที่คิดว่าเล่น",
+    p: "สิ่งที่เพื่อนเกรงใจไม่กล้าบอก และคนใกล้ตัวมักมองไม่เห็น",
+  },
+  {
+    h: "คำพูดจริงจากแชท",
+    p: "ทุกประโยคที่ป้ายกมาเป็นข้อความที่มีอยู่จริงในแชท ตรวจก่อนแสดงผล",
+  },
+  {
+    h: "ข้อเสนอที่ทำได้จริง",
+    p: "ไม่ใช่คำคมสวย ๆ แต่เป็นสิ่งเล็ก ๆ ที่ลองทำได้ภายในสัปดาห์นี้",
+  },
+];
+const privacy = [
+  {
+    h: "ลบแชทอัตโนมัติ",
+    p: "เป้าหมายนโยบาย: ลบไฟล์แชทภายใน 7 วันหลังรายงานล่าสุด และภายใน 48 ชั่วโมงถ้าไม่ได้ซื้อ",
+  },
+  {
+    h: "ไม่เอาแชทไปเทรนโมเดล",
+    p: "ใช้ผู้ให้บริการ AI ที่ตกลงเงื่อนไขไม่นำข้อมูลไปเทรน และบอกชื่อผู้ให้บริการในนโยบาย",
+  },
+  {
+    h: "ไม่มีใครในทีมอ่านแชทคุณ",
+    p: "รายงานสร้างโดย AI การเข้าถึงข้อมูลของทีมถูกจำกัดและมีบันทึก",
+  },
+  {
+    h: "ลบเองได้ทุกเมื่อ",
+    p: "ลบแชท ลบรายงาน หรือลบบัญชีทั้งหมดเองได้จากหน้าบัญชี",
+  },
+];
+const tiers = [
+  {
+    n: "แชทสั้น",
+    s: "ไม่เกิน ~2,000 ข้อความ",
+    p: "฿79",
+    note: "เช่น คนคุยใหม่ ๆ หรือกลุ่มที่เพิ่งตั้ง",
+  },
+  {
+    n: "แชททั่วไป",
+    s: "~2,000–8,000 ข้อความ",
+    p: "฿129",
+    note: "ขนาดที่เจอบ่อยที่สุดสำหรับแชทคู่",
+    featured: true,
+  },
+  {
+    n: "แชทยาว",
+    s: "~8,000–25,000 ข้อความ",
+    p: "฿199",
+    note: "ป้าอ่านข้อความล่าสุดเป็นหลักและบอกช่วงที่อ่านชัดเจน",
+  },
+];
+const faqs = [
+  {
+    q: "ฟรีจริงไหม?",
+    a: "ช่วงแรกของรายงานอ่านได้ฟรี ไม่ต้องใส่บัตร ถ้าอยากอ่านต่อค่อยปลดล็อกตามราคาที่เห็นก่อนจ่ายเสมอ (ราคาในหน้านี้เป็นราคาทดลอง)",
+  },
+  {
+    q: "ต่างจากแปะแชทใน ChatGPT ยังไง?",
+    a: "แชทจริงมักยาวเกินกว่าที่แชตบอททั่วไปรับได้ในครั้งเดียว และคำตอบมักเอาใจผู้ถาม ป้าถูกออกแบบให้ไม่เข้าข้างใคร ให้ผลเป็นรายงานที่แชร์ได้ และต่อยอดเป็นการสืบเรื่องหลายรอบได้",
+  },
+  {
+    q: "คนในแชทจะรู้ไหมว่าเราอัปโหลด?",
+    a: "การส่งออกแชทไม่แจ้งเตือนใคร และป้าไม่ติดต่อใครในแชท แต่ถ้าแชร์ลิงก์รายงานให้คนอื่น เขาก็อ่านได้ — แชร์เมื่อพร้อมเท่านั้น",
+  },
+  {
+    q: "แม่นแค่ไหน?",
+    a: 'แม่นเท่าที่แชทบอก ป้าอ่านเฉพาะข้อความ ไม่รู้เรื่องที่คุยทางโทรศัพท์หรือเจอกันจริง และไม่ฟังเสียง ไม่ดูรูป อ่านเป็น "ความเห็นตรง ๆ จากคนนอก" ไม่ใช่ความจริง และไม่ใช่คำแนะนำทางการแพทย์ กฎหมาย หรือจิตวิทยา',
+  },
+  {
+    q: "ถ้าแชทมีเรื่องหนัก ๆ เช่น ทำร้ายตัวเอง?",
+    a: "ป้าจะไม่เล่นมุก บอกตรง ๆ ว่ามีสัญญาณที่น่าห่วง และชี้ไปยังความช่วยเหลือจริง เช่น สายด่วนสุขภาพจิต 1323 (ตรวจสอบหมายเลขล่าสุดก่อนใช้งานจริง)",
+  },
+  {
+    q: "รองรับแอปอะไร?",
+    a: "เป้าหมายเริ่มต้นคือ LINE และ WhatsApp จากนั้น Instagram และ Messenger ส่วน Telegram, Discord ฯลฯ ขอโหวตความต้องการจากผู้ลงทะเบียนรอ",
+  },
+];
+---
+
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <a class="skip" href="#main">ข้ามไปเนื้อหาหลัก</a>
+
+    <div class="banner" role="note">
+      <strong>ต้นแบบ (Prototype)</strong> — หน้านี้ทดสอบแนวคิดเท่านั้น ยังไม่เปิดให้บริการ
+      ไม่มีการอัปโหลดแชท และไม่เก็บข้อมูลใด ๆ รายงานและแชทในหน้านี้เป็นตัวอย่างสมมติ
+    </div>
+
+    <header class="top">
+      <a class="brand" href="#top" aria-label="ป้าเม้าท์ กลับขึ้นบนสุด">
+        <span class="brand-mark" aria-hidden="true">🍵</span>
+        <span>ป้าเม้าท์</span>
+      </a>
+      <nav aria-label="เมนูหลัก">
+        <a href="#how">วิธีใช้</a>
+        <a href="#privacy">ความเป็นส่วนตัว</a>
+        <a href="#pricing">ราคา</a>
+        <a href="#faq">คำถามที่พบบ่อย</a>
+        <a class="btn btn-small" href="#waitlist">ลงทะเบียนรอ</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <p class="eyebrow">AI อ่านแชทให้ ตรง แต่หวังดี</p>
+          <h1>
+            ส่งแชทมา<br />แล้วป้าจะบอกว่า<br /><em>เกิดอะไรขึ้นจริง ๆ</em>
+          </h1>
+          <p class="lead">
+            ป้าเม้าท์อ่านแชท LINE / WhatsApp ของคุณตั้งแต่ข้อความแรก
+            แล้วเล่าให้ฟังว่าใครใส่ใจใคร ช่วงไหนที่อะไรเปลี่ยนไป
+            และบทบาทที่คุณเล่นอยู่ในสายตาคนอื่น
+            <strong>โดยไม่เข้าข้างใคร ไม่ประจบ</strong>
+          </p>
+          <div class="cta-row">
+            <a class="btn" href="#waitlist">ลงทะเบียนรอทดลองฟรี</a>
+            <a class="btn btn-ghost" href="#sample">ดูตัวอย่างรายงาน</a>
+          </div>
+          <p class="fine">
+            อ่านช่วงแรกของรายงานฟรี · ไม่ต้องใส่บัตร · ลบแชทของคุณได้เอง
+          </p>
+        </div>
+
+        <div class="hero-demo" aria-label="ตัวอย่างแชทสมมติ">
+          <div class="phone">
+            <div class="phone-head">
+              <span class="dot" aria-hidden="true"></span> ฟ้า & บีม
+              <small>ตัวอย่างสมมติ</small>
+            </div>
+            <ol class="bubbles">
+              {
+                chat.map((m, i) => (
+                  <li
+                    class={`bubble ${m.me ? "me" : "them"}`}
+                    style={`--i:${i}`}
+                  >
+                    <span class="who">{m.who}</span>
+                    {m.text}
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+          <aside class="verdict" style="--i:11">
+            <p class="verdict-tag">🍵 ป้าเม้าท์ว่า</p>
+            <p>
+              ฟ้าถามเรื่องวันเสาร์ครั้งเดียว แต่ที่จริงถามว่า "ฉันสำคัญแค่ไหน" —
+              และคำว่า "โอเค" ตอนท้ายไม่ใช่โอเค
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="strip" aria-label="แชทที่ใช้ได้">
+        <p>ใช้กับแชทแบบไหนก็ได้ที่มีคนคุยกันตั้งแต่สองคน</p>
+        <ul class="chips">
+          {chatTypes.map(c => <li>{c}</li>)}
+        </ul>
+      </section>
+
+      <section class="block" id="how">
+        <h2>ใช้ง่าย ใน 4 ขั้นตอน</h2>
+        <ol class="steps">
+          {
+            steps.map((s, i) => (
+              <li>
+                <span class="num" aria-hidden="true">
+                  {i + 1}
+                </span>
+                <h3>{s.t}</h3>
+                <p>{s.d}</p>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="note">
+          รองรับ LINE และ WhatsApp ก่อน · Instagram / Messenger ตามมาในรุ่นถัดไป
+        </p>
+      </section>
+
+      <section class="block alt" id="includes">
+        <h2>ในรายงานมีอะไรบ้าง</h2>
+        <div class="grid">
+          {
+            includes.map(x => (
+              <article class="card">
+                <h3>{x.h}</h3>
+                <p>{x.p}</p>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="block" id="sample">
+        <h2>หน้าตารายงาน (ตัวอย่างสมมติ)</h2>
+        <p class="sub">
+          ข้อความและตัวเลขด้านล่างเขียนขึ้นเพื่อแสดงรูปแบบ ไม่ได้มาจากแชทจริง
+        </p>
+        <div class="report" role="group" aria-label="ตัวอย่างรายงาน">
+          <header class="report-head">
+            <div>
+              <p class="eyebrow">รายงานฉบับที่ 1</p>
+              <h3>ฟ้า & บีม · 1,842 ข้อความ</h3>
+            </div>
+            <span class="badge">อ่านฟรี ~25%</span>
+          </header>
+          <div class="report-body">
+            <h4>ภาพรวม</h4>
+            <p>
+              แชทนี้เริ่มต้นด้วยพลังงานสูงทั้งสองฝ่าย แล้วค่อย ๆ
+              เปลี่ยนเป็นรูปแบบเดิมซ้ำ ๆ: ฟ้าเป็นฝ่ายเสนอ บีมเป็นฝ่ายตอบรับ (ช้า
+              ๆ) ตั้งแต่เดือนที่สามเป็นต้นมา
+            </p>
+            <h4>ความเห็นรายคน</h4>
+            <p>
+              <strong>ฟ้า</strong> — ถามตรงแต่ทดสอบอ้อม ๆ (ถามคำถามเดียวกันสามรอบในรูปแบบต่างกัน)
+              ความกังวลของฟ้าไม่ได้อยู่ที่วันเสาร์ แต่อยู่ที่การไม่ได้ลำดับความสำคัญ
+            </p>
+            <p class="locked-line">
+              <strong>บีม</strong> — ตอบรับเสมอแต่ไม่ผูกมัด ใช้คำว่า "น่าจะ"
+              <span class="blur" aria-hidden="true">
+                มากกว่าคำตอบที่ชัดเจน ซึ่งทำให้ฟ้าต้องเดาอยู่ตลอด
+                และนี่คือแพตเทิร์นที่เกิดขึ้นซ้ำในช่วงที่ผ่านมา…
+              </span>
+            </p>
+            <div class="lock" role="note">
+              <p>
+                🔒 ส่วนที่เหลือ: บทบาทที่เล่น · จุดเปลี่ยน · ข้อเสนอที่ลองทำได้
+              </p>
+              <a class="btn btn-small" href="#waitlist"
+                >ขอทดลองใช้กับแชทของตัวเอง</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="block alt" id="privacy">
+        <h2>ข้อมูลแชทเป็นเรื่องส่วนตัวมาก เราจึงออกแบบจากตรงนี้ก่อน</h2>
+        <div class="grid">
+          {
+            privacy.map(x => (
+              <article class="card">
+                <h3>{x.h}</h3>
+                <p>{x.p}</p>
+              </article>
+            ))
+          }
+        </div>
+        <p class="note">
+          ข้อความเหล่านี้คือ <strong>เป้าหมายนโยบาย</strong> ของผลิตภัณฑ์ ก่อนเปิดให้บริการจริงต้องมีนโยบายความเป็นส่วนตัวตามกฎหมาย
+          PDPA ที่ผ่านการตรวจโดยผู้เชี่ยวชาญ
+        </p>
+      </section>
+
+      <section class="block" id="pricing">
+        <h2>ราคา (ราคาทดลอง — ยังไม่ใช่ราคาจริง)</h2>
+        <p class="sub">
+          จ่ายต่อรายงาน ไม่มีสมัครสมาชิกอัตโนมัติ เห็นราคาก่อนจ่ายเสมอ ชำระผ่าน
+          PromptPay หรือบัตร
+        </p>
+        <div class="tiers">
+          {
+            tiers.map(t => (
+              <article class={`tier${t.featured ? " featured" : ""}`}>
+                {t.featured && <span class="badge">พบบ่อยที่สุด</span>}
+                <h3>{t.n}</h3>
+                <p class="size">{t.s}</p>
+                <p class="price">
+                  {t.p}
+                  <small> / รายงาน</small>
+                </p>
+                <p class="tier-note">{t.note}</p>
+              </article>
+            ))
+          }
+        </div>
+        <ul class="extras">
+          <li>
+            <strong>รายงานต่อเนื่อง ฿59–79</strong> — เพิ่มบริบทหรือข้อความใหม่ แล้วให้ป้าอ่านต่อ
+          </li>
+          <li>
+            <strong>รายงานรวมหลายแชท ฿399–599</strong> — อ่านสองถึงห้าแชทพร้อมกัน
+            เพื่อดูภาพรวมของคุณ
+          </li>
+          <li>
+            <strong>คุยกับป้าผ่าน LINE (สมาชิกรายเดือน ~฿299)</strong> — กำลังพิจารณา
+          </li>
+        </ul>
+        <p class="note">
+          ราคาทั้งหมดรวมภาษีแล้ว และจะทดสอบ/ปรับก่อนเปิดจริง
+          รายงานที่สร้างไม่สำเร็จคืนเงินเต็มจำนวนอัตโนมัติ
+        </p>
+      </section>
+
+      <section class="block alt" id="faq">
+        <h2>คำถามที่พบบ่อย</h2>
+        <div class="faq">
+          {
+            faqs.map(f => (
+              <details>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="block waitlist" id="waitlist">
+        <h2>อยากลองก่อนใคร?</h2>
+        <p class="sub">
+          ฝากอีเมลไว้ เมื่อเปิดทดลองจะแจ้งก่อน
+          และบอกเราด้วยว่าอยากให้รองรับแอปไหน
+        </p>
+        <form id="waitlist-form" novalidate>
+          <label for="wl-email">อีเมล</label>
+          <input
+            id="wl-email"
+            name="email"
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            required
+          />
+          <label for="wl-app">แชทที่อยากให้ป้าอ่านมากที่สุด</label>
+          <select id="wl-app" name="app">
+            <option value="line">LINE</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="instagram">Instagram / Messenger</option>
+            <option value="other">อื่น ๆ</option>
+          </select>
+          <label class="check">
+            <input type="checkbox" name="consent" required />
+            <span>
+              ยินยอมให้ติดต่อทางอีเมลเกี่ยวกับการเปิดทดลองใช้เท่านั้น
+              และขอถอนความยินยอมได้ทุกเมื่อ
+            </span>
+          </label>
+          <button class="btn" type="submit">ลงทะเบียนรอ</button>
+          <p id="wl-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>
+        ป้าเม้าท์ (ชื่อชั่วคราว) · ต้นแบบเพื่อทดสอบแนวคิด ·
+        ไม่ใช่บริการทางการแพทย์ กฎหมาย หรือจิตวิทยา · เป็นความเห็นจากข้อความที่
+        AI อ่านเท่านั้น
+      </p>
+      <p>
+        ไม่เกี่ยวข้องกับเว็บไซต์หรือบริการใดที่มีอยู่
+        ตัวอย่างทั้งหมดเป็นข้อมูลสมมติ
+      </p>
+    </footer>
+
+    <style is:global>
+      :root {
+        --bg: #fff9f1;
+        --bg-alt: #fff1e0;
+        --ink: #2b1d16;
+        --muted: #6b5a50;
+        --line: #f0d9c2;
+        --accent: #c2410c;
+        --accent-ink: #ffffff;
+        --card: #ffffff;
+        --me: #ffe3c9;
+        --them: #ffffff;
+        --shadow: 0 6px 24px rgba(120, 60, 20, 0.12);
+        --radius: 16px;
+        --maxw: 1080px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1a1411;
+          --bg-alt: #221a16;
+          --ink: #f6ece4;
+          --muted: #c2b0a3;
+          --line: #3a2d26;
+          --accent: #fb923c;
+          --accent-ink: #1a1411;
+          --card: #261d18;
+          --me: #5a3416;
+          --them: #2d231d;
+          --shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 72px;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          "Noto Sans Thai",
+          "Sarabun",
+          "Leelawadee UI",
+          "Tahoma",
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.7;
+        font-size: 17px;
+        -webkit-text-size-adjust: 100%;
+      }
+      .skip {
+        position: absolute;
+        left: -999px;
+        top: 0;
+        background: var(--accent);
+        color: var(--accent-ink);
+        padding: 8px 14px;
+        z-index: 100;
+      }
+      .skip:focus {
+        left: 8px;
+        top: 8px;
+      }
+      a {
+        color: inherit;
+      }
+      a:focus-visible,
+      button:focus-visible,
+      summary:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .banner {
+        background: var(--ink);
+        color: var(--bg);
+        text-align: center;
+        font-size: 14px;
+        padding: 8px 16px;
+      }
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px max(16px, calc((100% - var(--maxw)) / 2));
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        font-weight: 800;
+        font-size: 1.15rem;
+        text-decoration: none;
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .top nav {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        font-size: 15px;
+      }
+      .top nav a {
+        text-decoration: none;
+        color: var(--muted);
+      }
+      .top nav a:hover {
+        color: var(--ink);
+      }
+      .top nav a.btn {
+        color: var(--accent-ink);
+      }
+      @media (max-width: 760px) {
+        .top nav a:not(.btn) {
+          display: none;
+        }
+      }
+      .btn {
+        display: inline-block;
+        background: var(--accent);
+        color: var(--accent-ink);
+        padding: 12px 22px;
+        border-radius: 999px;
+        font-weight: 700;
+        text-decoration: none;
+        border: 2px solid var(--accent);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        min-height: 44px;
+      }
+      .btn:hover {
+        filter: brightness(1.08);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--accent);
+      }
+      .btn-small {
+        padding: 6px 16px;
+        min-height: 36px;
+        font-size: 15px;
+      }
+      main section {
+        padding: 56px max(16px, calc((100% - var(--maxw)) / 2));
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 40px;
+        align-items: center;
+        padding-top: 48px;
+      }
+      @media (max-width: 860px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+      }
+      .eyebrow {
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.02em;
+        margin: 0 0 8px;
+      }
+      h1 {
+        font-size: clamp(2rem, 6vw, 3.4rem);
+        line-height: 1.25;
+        margin: 0 0 16px;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--accent);
+      }
+      h2 {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        line-height: 1.3;
+        margin: 0 0 12px;
+      }
+      h3 {
+        margin: 0 0 6px;
+        font-size: 1.1rem;
+      }
+      h4 {
+        margin: 18px 0 4px;
+      }
+      .lead {
+        font-size: 1.1rem;
+        color: var(--muted);
+        max-width: 34em;
+      }
+      .lead strong {
+        color: var(--ink);
+      }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 22px 0 10px;
+      }
+      .fine,
+      .note,
+      .sub {
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .sub {
+        margin: 0 0 20px;
+      }
+      .hero-demo {
+        position: relative;
+      }
+      .phone {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        max-width: 380px;
+        margin-inline: auto;
+      }
+      .phone-head {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        font-weight: 700;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .phone-head small {
+        margin-left: auto;
+        font-weight: 400;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #22c55e;
+      }
+      .bubbles {
+        list-style: none;
+        margin: 0;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .bubble {
+        max-width: 82%;
+        padding: 8px 12px;
+        border-radius: 16px;
+        font-size: 15px;
+        line-height: 1.5;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: pop 0.45s ease forwards;
+        animation-delay: calc(var(--i) * 0.45s + 0.3s);
+      }
+      .bubble.me {
+        align-self: flex-end;
+        background: var(--me);
+        border-bottom-right-radius: 4px;
+      }
+      .bubble.them {
+        align-self: flex-start;
+        background: var(--them);
+        border: 1px solid var(--line);
+        border-bottom-left-radius: 4px;
+      }
+      .who {
+        display: block;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .verdict {
+        margin: -18px auto 0;
+        position: relative;
+        max-width: 330px;
+        background: var(--ink);
+        color: var(--bg);
+        padding: 14px 18px;
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        opacity: 0;
+        transform: translateY(10px);
+        animation: pop 0.6s ease forwards;
+        animation-delay: calc(var(--i) * 0.45s + 0.6s);
+        font-size: 15px;
+      }
+      .verdict p {
+        margin: 0;
+      }
+      .verdict-tag {
+        font-weight: 800;
+        margin-bottom: 4px !important;
+      }
+      @keyframes pop {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .bubble,
+        .verdict {
+          animation: none;
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .strip {
+        text-align: center;
+        padding-block: 28px !important;
+        border-block: 1px solid var(--line);
+        background: var(--bg-alt);
+      }
+      .strip p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+      .chips {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+      .chips li {
+        background: var(--card);
+        border: 1px solid var(--line);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 15px;
+      }
+      .alt {
+        background: var(--bg-alt);
+      }
+      .steps {
+        list-style: none;
+        margin: 24px 0 8px;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 16px;
+        counter-reset: s;
+      }
+      .steps li {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 18px;
+      }
+      .steps p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .num {
+        display: inline-grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 18px;
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .report {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        max-width: 760px;
+        overflow: hidden;
+      }
+      .report-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
+      }
+      .report-head h3 {
+        margin: 0;
+      }
+      .report-body {
+        padding: 6px 22px 22px;
+      }
+      .badge {
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .blur {
+        filter: blur(5px);
+        user-select: none;
+      }
+      .lock {
+        margin-top: 14px;
+        padding: 16px;
+        border: 2px dashed var(--line);
+        border-radius: 12px;
+        text-align: center;
+      }
+      .lock p {
+        margin: 0 0 8px;
+      }
+      .tiers {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+      .tier {
+        position: relative;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+      .tier.featured {
+        border: 2px solid var(--accent);
+        box-shadow: var(--shadow);
+      }
+      .tier .badge {
+        position: absolute;
+        top: -12px;
+        right: 16px;
+      }
+      .size,
+      .tier-note {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 0;
+      }
+      .price {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 8px 0 4px;
+      }
+      .price small {
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .extras {
+        margin: 22px 0 8px;
+        padding-left: 20px;
+      }
+      .faq details {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 4px 16px;
+        margin-bottom: 10px;
+      }
+      .faq summary {
+        cursor: pointer;
+        font-weight: 700;
+        padding: 12px 0;
+      }
+      .faq p {
+        margin: 0 0 14px;
+        color: var(--muted);
+      }
+      .waitlist form {
+        display: grid;
+        gap: 10px;
+        max-width: 480px;
+      }
+      .waitlist label {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .waitlist input[type="email"],
+      .waitlist select {
+        font: inherit;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--muted);
+        background: var(--card);
+        color: var(--ink);
+        min-height: 46px;
+      }
+      .waitlist .check {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        font-weight: 400;
+      }
+      .waitlist .check input {
+        margin-top: 6px;
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+      }
+      #wl-status {
+        min-height: 1.5em;
+        margin: 0;
+        font-size: 15px;
+      }
+      #wl-status.err {
+        color: #b91c1c;
+      }
+      @media (prefers-color-scheme: dark) {
+        #wl-status.err {
+          color: #fca5a5;
+        }
+      }
+      .foot {
+        border-top: 1px solid var(--line);
+        padding: 28px max(16px, calc((100% - var(--maxw)) / 2));
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .foot p {
+        margin: 0 0 6px;
+      }
+    </style>
+
+    <script is:inline>
+      // Waitlist form (prototype).
+      // WAITLIST_ENDPOINT ว่างไว้โดยตั้งใจ: ยังไม่มี backend จึงไม่บันทึก/ส่งข้อมูลใด ๆ
+      // เมื่อมี endpoint จริง (เช่น ฟังก์ชัน serverless + ฐานข้อมูล) ให้ใส่ URL ที่นี่
+      // และอัปเดตนโยบายความเป็นส่วนตัวให้ตรงกับการเก็บข้อมูลจริงก่อนเปิดใช้
+      var WAITLIST_ENDPOINT = "";
+      (function () {
+        var form = document.getElementById("waitlist-form");
+        var status = document.getElementById("wl-status");
+        if (!form || !status) return;
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          status.className = "";
+          var email = form.elements["email"].value.trim();
+          var consent = form.elements["consent"].checked;
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            status.className = "err";
+            status.textContent = "กรุณากรอกอีเมลให้ถูกต้อง";
+            form.elements["email"].focus();
+            return;
+          }
+          if (!consent) {
+            status.className = "err";
+            status.textContent = "กรุณาติ๊กยินยอมการติดต่อก่อนส่ง";
+            return;
+          }
+          if (!WAITLIST_ENDPOINT) {
+            status.textContent =
+              "นี่คือหน้าต้นแบบ ยังไม่ได้เชื่อมต่อที่เก็บข้อมูล จึงยังไม่ได้บันทึกอีเมลของคุณ";
+            return;
+          }
+          status.textContent = "กำลังส่ง…";
+          fetch(WAITLIST_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email,
+              app: form.elements["app"].value,
+              consent: true,
+            }),
+          })
+            .then(function (r) {
+              if (!r.ok) throw new Error("bad status");
+              status.textContent = "ลงทะเบียนเรียบร้อย ขอบคุณที่สนใจ";
+              form.reset();
+            })
+            .catch(function () {
+              status.className = "err";
+              status.textContent = "ส่งไม่สำเร็จ ลองใหม่อีกครั้งภายหลัง";
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>
